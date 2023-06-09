@@ -1,0 +1,13 @@
+
+
+# Dataset
+
+path       : ./data/20200718_C_NEW.TSAGI_COMP
+T_in       : 160
+T_out      : 160
+nb_lon     : 50
+nb_lat     : 50
+nb_classes : 5
+log_thr    : 0.01
+batch_size : 16
+
