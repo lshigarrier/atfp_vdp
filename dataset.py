@@ -6,6 +6,35 @@ from torch.utils.data import DataLoader
 from utils import load_yaml
 
 
+def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./data/20200718_C_NEW.feather'):
+    """
+    Convert a TSAGI file into a feather file
+    """
+    print('Converting TSAGI to feather ...')
+    data_list = []
+    with open(input_path) as f:
+        # The first line is the number of trajectories
+        _ = f.readline()
+        line = f.readline()
+        while line != "":
+            point = line.split()
+            # 0->idac, 3->time, 4->lon, 5->lat, 6->alt, 7->speed, 8->head, 9->vz, 10->cong
+            point = [float(point[0]),
+                     float(point[3]),
+                     float(point[4]),
+                     float(point[5]),
+                     float(point[6]),
+                     float(point[7]),
+                     float(point[8]),
+                     float(point[9]),
+                     float(point[10])]
+            data_list.append(point)
+            line = f.readline()
+    data = pd.DataFrame(data_list, columns=['idac', 'time', 'lon', 'lat', 'alt', 'speed', 'head', 'vz', 'cong'])
+    data.to_feather(output_path)
+    print('... done!')
+
+
 def cont2dis(value, max_val, nb_classes):
     """
     Transform a continuous value (regression) into a discrete value (classification)
@@ -22,101 +51,71 @@ def cont2dis(value, max_val, nb_classes):
 
 class TsagiSet(Dataset):
 
-    def __init__(self, param):
+    def __init__(self, param, train=True):
         """
-        Load the data from the TSAGI_COMP file into self.data
-        self.data is a dictionary -> key is time, value is a list of aircraft states
-        aircraft state is a list: [idac, time, lon, lat, alt, speed, head, vz, cong]
+        Load the data from a feather file
+        Normalize the data
+        Create the ground truth
         """
-        data      = {}
-        # list of lists containing the values of each parameter
-        val_list  = [[] for _ in range(9)]
-        # list of tuples containing the min and max of each parameter
-        min_max   = []
+        self.data = pd.read_feather(param['path'])
+        print('Data loaded')
 
-        # Read the file
-        with open(param['path']) as f:
-            # The first line is the number of trajectories
-            _ = f.readline()
-            line = f.readline()
-            while line != "":
-                point = line.split()
-                # 0->idac, 3->time, 4->lon, 5->lat, 6->alt, 7->speed, 8->head, 9->vz, 10->cong
-                point = [float(point[0]),
-                         float(point[3]),
-                         float(point[4]),
-                         float(point[5]),
-                         float(point[6]),
-                         float(point[7]),
-                         float(point[8]),
-                         float(point[9]),
-                         float(point[10])]
-                for i in range(9):
-                    val_list[i].append(point[i])
-                time = point[1]
-                if time in data:
-                    data[time].append(point)
-                else:
-                    data[time] = [point]
-                line = f.readline()
-        print('Reading done')
+        # Compute the min and max of each column, then normalize all columns
+        self.mins = self.data.min()
+        self.maxs = self.data.max()
+        self.data = (self.data - self.mins)/(self.maxs - self.mins)
 
-        self.times = list(data.keys())
-        self.nb_times = len(self.times)
+        # Compute the maximum number of a/c at the same timestamp
+        self.max_ac = self.data.groupby(['time'])['time'].count().max()
 
-        # Compute the min and max of each parameter
-        for i in range(9):
-            min_max.append((min(val_list[i]), max(val_list[i])))
-        self.min_max = min_max
+        # Initialize various attributes
+        self.t_in          = int(param['T_in'])
+        self.t_out         = int(param['T_out'])
+        self.split_ratio   = param['split_ratio']
+        self.times         = self.data['time'].tolist()
+        self.total_seq     = len(self.times) - self.t_in - self.t_out + 1
+        self.len_seq       = self.t_in - self.t_out
+        self.sup_seq       = round(self.split_ratio * (self.total_seq + 4 * (1 - self.len_seq)) / 2 - 1)
+        self.train         = train
 
-        # Normalize all values and compute the maximum number of a/c at the same timestamp
-        max_list = []
-        for t in self.times:
-            max_list.append(len(data[t]))
-            for i in range(len(data[t])):
-                for j in range(9):
-                    data[t][i][j] = self.normalize(data[t][i][j], j)
-            data[t] = torch.tensor(data[t])
-        self.data   = data
-        self.max_ac = np.amax(np.array(max_list))
-        print('Normalization done')
-
-        self.y_tensor = None
-        self.x_tensor = None
-        self.t_in     = int(param['T_in'])
-        self.t_out    = int(param['T_out'])
-        self.compute_output(param)
-        # self.compute_input()
+        self.time_starts, self.timestamps = self.get_time_slices()
+        self.output_tensor                = self.compute_output(param)
         print('Preprocessing done')
 
     def __len__(self):
-        return self.nb_times - self.t_in - self.t_out + 1
+        if self.train:
+            return self.total_seq - 2*(2*self.len_seq + self.sup_seq - 1)
+        else:
+            return 2*(self.sup_seq + 1)
 
     def __getitem__(self, item):
-        input_seq = torch.zeros(self.max_ac*self.t_in, 8)
-        start = 0
-        for time in range(item, item+self.t_in):
-            t = self.times[time]
-            nb_ac = self.data[t].shape[0]
-            input_seq[start:start+nb_ac, :] = self.data[t][:, :8]
-            start += nb_ac
-        return input_seq, self.y_tensor[item+self.t_in:item+self.t_in+self.t_out, :, :]
+        input_seq  = torch.zeros(self.t_in, self.max_ac, 8)
+        time_start = self.time_starts[item]
+        idx        = self.timestamps.index(time_start)
+        for t in range(self.t_in):
+            frame  = self.data.loc[self.data['time'] == self.timestamps[idx+t]]
+            frame  = frame.drop(['time', 'cong'], axis=1)
+            frame  = frame.sort_values(by=['idac'])
+            frame  = frame.drop(['idac'])
+            tensor = torch.tensor(frame.values)
+            input_seq[t, :tensor.shape[0], :] = tensor[:]
+        return input_seq, self.output_tensor[idx+self.t_in:idx+self.t_in+self.t_out, ...]
 
-
-    def normalize(self, value, coord):
-        """
-        Normalize a value corresponding to a given coordinate
-        coord = 0 -> aircraft ID
-        coord = 1 -> time
-        coord = 2 -> longitude
-        coord = 3 -> latitude
-        coord = 4 -> altitude
-        coord = 5 -> ground speed
-        coord = 6 -> heading
-        coord = 7 -> vertical speed
-        coord = 8 -> congestion metric
-        """
-        return (value - self.min_max[coord][0]) / (self.min_max[coord][1] - self.min_max[coord][0])
+    def get_time_slices(self):
+        train_seq = round((self.total_seq - 2*(self.len_seq + self.sup_seq))/3)
+        if self.train:
+            time_starts = self.times[:train_seq-self.len_seq+1]\
+                        + self.times[train_seq+self.len_seq+self.sup_seq:2*train_seq+self.sup_seq+1]\
+                        + self.times[2*train_seq+2*(self.len_seq+self.sup_seq):len(self.times)-self.len_seq+1]
+            timestamps = self.times[:train_seq]\
+                       + self.times[train_seq+self.len_seq+self.sup_seq:2*train_seq+self.len_seq+self.sup_seq]\
+                       + self.times[2*(train_seq+self.len_seq+self.sup_seq):]
+        else:
+            time_starts = self.times[train_seq:train_seq+self.sup_seq+1] +\
+                          self.times[2*train_seq+self.len_seq+self.sup_seq:2*train_seq+self.len_seq+2*self.sup_seq+1]
+            timestamps = self.times[train_seq:train_seq+self.len_seq+self.sup_seq] +\
+                         self.times[2*train_seq+self.len_seq+self.sup_seq:2*(train_seq+self.len_seq+self.sup_seq)]
+        return time_starts, timestamps
 
     def compute_output(self, param):
         """
@@ -124,45 +123,37 @@ class TsagiSet(Dataset):
         If x << log_thr => log(1 + x/log_thr) ~= x/log_thr -> linear in x for small values
         If x >> log_thr => log(1 + x/log_thr) ~= log(x) - log(log_thr) -> log in x for high values
         If x = 0 => log(1 + x/log_thr) = 0
-        Normalize the congestion between 0 and 1
         """
         nb_lon   = int(param['nb_lon'])
         nb_lat   = int(param['nb_lat'])
         log_thr  = float(param['log_thr'])
-        y_tensor = torch.zeros(self.nb_times, nb_lon, nb_lat)
+        output_tensor = torch.zeros(len(self.timestamps), nb_lon, nb_lat)
         max_val = np.log(1 + 1/log_thr)
-        for time in range(self.nb_times):
-            t = self.times[time]
-            for i in range(len(self.data[t])):
-                s_lon = int(self.data[t][i][2]*nb_lon)
-                s_lat = int(self.data[t][i][3]*nb_lat)
-                if s_lon > nb_lon - 1 or s_lat > nb_lat - 1 or s_lon < 0 or s_lat < 0:
-                    continue
-                val = cont2dis(np.log(1 + self.data[t][i][-1]/log_thr), max_val, param['nb_classes'])
-                if val > y_tensor[time, s_lon, s_lat]:
-                    y_tensor[time, s_lon, s_lat] = val
-        self.y_tensor = y_tensor
-
-    def compute_input(self):
-        """
-        Compute the inputs for the models
-        The a/c states are organised by position, with zero padding
-        """
-        x_tensor = torch.zeros(self.nb_times, self.max_ac*6)
-        for t in self.times:
-            states = torch.tensor(sorted(self.data[t], key=lambda l:l[2]+10*l[3]))
-            states = states[:,2:8].flatten()
-            x_tensor[t, :states.shape[0]] = states[:]
-        self.x_tensor = x_tensor
+        for t, time in enumerate(self.timestamps):
+            for i_lon in range(nb_lon):
+                for i_lat in range(nb_lat):
+                    c_lon = i_lon/nb_lon
+                    c_lat = i_lat/nb_lat
+                    frame = self.data.loc[(self.data['time'] == time)
+                            & (self.data['lon'] < c_lon+1/nb_lon/2) & (self.data['lon'] >= c_lon-1/nb_lon/2)
+                            & (self.data['lat'] < c_lat+1/nb_lat/2) & (self.data['lat'] >= c_lat-1/nb_lat/2)]
+                    if frame.empty:
+                        continue
+                    val   = frame['cong'].max()
+                    output_tensor[t, i_lon, i_lat] = cont2dis(np.log(1 + val/log_thr), max_val, param['nb_classes'])
+        return output_tensor
 
 
 def main():
     param = load_yaml()
-    dataset = TsagiSet(param)
-    print(f'Nb of timestamps: {dataset.nb_times}')
-    print(f'Dataset length: {len(dataset)}')
-    print(f'Max nb of a/c: {dataset.max_ac}')
-    loader = DataLoader(dataset,
+    trainset = TsagiSet(param, train=True)
+    testset  = TsagiSet(param, train=False)
+    print(f'Nb of timestamps: {len(trainset.times)}')
+    print(f'Nb of sequences: {trainset.total_seq}')
+    print(f'Trainset length: {len(trainset)}')
+    print(f'Testset length: {len(testset)}')
+    print(f'Max nb of a/c: {trainset.max_ac}')
+    loader = DataLoader(testset,
                         batch_size=param['batch_size'],
                         shuffle=True,
                         pin_memory=True,
@@ -178,4 +169,5 @@ def main():
 
 
 if __name__ == '__main__':
+    # tsagi2frame()
     main()
