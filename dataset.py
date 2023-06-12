@@ -51,12 +51,18 @@ def cont2dis(value, max_val, nb_classes):
 
 class TsagiSet(Dataset):
 
-    def __init__(self, param, train=True):
+    def __init__(self, param, train=True, state_dim=6):
         """
         Load the data from a feather file
         Normalize the data
         Create the ground truth
         """
+        self.train = train
+        if self.train:
+            print('Preprocessing training set')
+        else:
+            print('Preprocessing test set')
+
         self.data = pd.read_feather(param['path'])
         print('Data loaded')
 
@@ -72,11 +78,11 @@ class TsagiSet(Dataset):
         self.t_in          = int(param['T_in'])
         self.t_out         = int(param['T_out'])
         self.split_ratio   = param['split_ratio']
-        self.times         = self.data['time'].tolist()
+        self.times         = self.data['time'].drop_duplicates().sort_values().tolist()
         self.total_seq     = len(self.times) - self.t_in - self.t_out + 1
-        self.len_seq       = self.t_in - self.t_out
+        self.len_seq       = self.t_in + self.t_out
         self.sup_seq       = round(self.split_ratio * (self.total_seq + 4 * (1 - self.len_seq)) / 2 - 1)
-        self.train         = train
+        self.state_dim     = state_dim
 
         self.time_starts, self.timestamps = self.get_time_slices()
         self.output_tensor                = self.compute_output(param)
@@ -89,17 +95,17 @@ class TsagiSet(Dataset):
             return 2*(self.sup_seq + 1)
 
     def __getitem__(self, item):
-        input_seq  = torch.zeros(self.t_in, self.max_ac, 8)
+        input_seq = torch.zeros(self.t_in, self.max_ac, 6)
         time_start = self.time_starts[item]
-        idx        = self.timestamps.index(time_start)
+        idx = self.timestamps.index(time_start)
         for t in range(self.t_in):
-            frame  = self.data.loc[self.data['time'] == self.timestamps[idx+t]]
-            frame  = frame.drop(['time', 'cong'], axis=1)
-            frame  = frame.sort_values(by=['idac'])
-            frame  = frame.drop(['idac'])
+            frame = self.data.loc[self.data['time'] == self.timestamps[idx + t]]
+            frame = frame.drop(['time', 'cong', 'int_lon', 'int_lat'], axis=1)
+            frame = frame.sort_values(by=['idac'])
+            frame = frame.drop(['idac'], axis=1)
             tensor = torch.tensor(frame.values)
             input_seq[t, :tensor.shape[0], :] = tensor[:]
-        return input_seq, self.output_tensor[idx+self.t_in:idx+self.t_in+self.t_out, ...]
+        return input_seq, self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, ...]
 
     def get_time_slices(self):
         train_seq = round((self.total_seq - 2*(self.len_seq + self.sup_seq))/3)
@@ -127,20 +133,25 @@ class TsagiSet(Dataset):
         nb_lon   = int(param['nb_lon'])
         nb_lat   = int(param['nb_lat'])
         log_thr  = float(param['log_thr'])
+        max_val  = np.log(1 + 1/log_thr)
+
+        self.data['int_lon'] = (self.data['lon']*(nb_lon - 1)).round()
+        self.data['int_lat'] = (self.data['lat']*(nb_lon - 1)).round()
+
+        frame = self.data.loc[:, ['time', 'int_lon', 'int_lat', 'cong']]
+        frame = frame[frame['time'].isin(self.timestamps)]
+        frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'int_lon', 'int_lat'])
+        frame = frame.sort_values(by=['time', 'int_lon', 'int_lat'])
+
+        frame['cong'] = (np.log(1 + frame['cong']/log_thr)/max_val*(param['nb_classes'] - 1)).round()
+        frame['cong'] = frame['cong']/(param['nb_classes'] - 1)
+
+        tensor = torch.tensor(frame.values)
+
         output_tensor = torch.zeros(len(self.timestamps), nb_lon, nb_lat)
-        max_val = np.log(1 + 1/log_thr)
-        for t, time in enumerate(self.timestamps):
-            for i_lon in range(nb_lon):
-                for i_lat in range(nb_lat):
-                    c_lon = i_lon/nb_lon
-                    c_lat = i_lat/nb_lat
-                    frame = self.data.loc[(self.data['time'] == time)
-                            & (self.data['lon'] < c_lon+1/nb_lon/2) & (self.data['lon'] >= c_lon-1/nb_lon/2)
-                            & (self.data['lat'] < c_lat+1/nb_lat/2) & (self.data['lat'] >= c_lat-1/nb_lat/2)]
-                    if frame.empty:
-                        continue
-                    val   = frame['cong'].max()
-                    output_tensor[t, i_lon, i_lat] = cont2dis(np.log(1 + val/log_thr), max_val, param['nb_classes'])
+        for row in tensor:
+            t = self.timestamps.index(row[0].item())
+            output_tensor[t, round(row[1].item()), round(row[2].item())] = row[3].item()
         return output_tensor
 
 
