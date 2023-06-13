@@ -1,6 +1,14 @@
+name       : baseline
+model      : weights.pt
+seed       : 0
+gpu_number : null
+load       : False
 
+# model
 
-# Dataset
+channels : [16, 32, 64, 128]
+
+# dataset
 
 path        : ./data/20200718_C_NEW.feather
 split_ratio : 0.1
@@ -10,5 +18,10 @@ nb_lon      : 50
 nb_lat      : 50
 nb_classes  : 5
 log_thr     : 0.01
-batch_size  : 16
 
+# training
+
+batch_size    : 16
+optimizer     : adam
+learning_rate : 0.001
+epochs        : 5

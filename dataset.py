@@ -35,20 +35,6 @@ def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./da
     print('... done!')
 
 
-def cont2dis(value, max_val, nb_classes):
-    """
-    Transform a continuous value (regression) into a discrete value (classification)
-    value must be in [0, max_val]
-    nb_classes is the number of classes
-    The classes are labeled as 1/nb_classes, 2/nb_classes, ..., (nb_classes-1)/nb_classes, 1
-    """
-    classes = np.linspace(0, max_val, num=nb_classes+1, endpoint=True)
-    for i in range(1, len(classes)):
-        if value <= classes[i]:
-            return i/nb_classes
-    raise RuntimeError
-
-
 class TsagiSet(Dataset):
 
     def __init__(self, param, train=True, state_dim=6):
@@ -143,8 +129,9 @@ class TsagiSet(Dataset):
         frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'int_lon', 'int_lat'])
         frame = frame.sort_values(by=['time', 'int_lon', 'int_lat'])
 
+        # The labels are integers between 0 and nb_classes - 1
         frame['cong'] = (np.log(1 + frame['cong']/log_thr)/max_val*(param['nb_classes'] - 1)).round()
-        frame['cong'] = frame['cong']/(param['nb_classes'] - 1)
+        # frame['cong'] = frame['cong']/(param['nb_classes'] - 1)
 
         tensor = torch.tensor(frame.values)
 
