@@ -3,7 +3,6 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from utils import load_yaml
 
 
 def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./data/20200718_C_NEW.feather'):
@@ -49,8 +48,8 @@ class TsagiSet(Dataset):
         else:
             print('Preprocessing test set')
 
+        # Load data
         self.data = pd.read_feather(param['path'])
-        print('Data loaded')
 
         # Compute the min and max of each column, then normalize all columns
         self.mins = self.data.min()
@@ -71,6 +70,7 @@ class TsagiSet(Dataset):
         self.state_dim     = state_dim
 
         self.time_starts, self.timestamps = self.get_time_slices()
+        print('Building outputs')
         self.output_tensor                = self.compute_output(param)
         print('Preprocessing done')
 
@@ -81,7 +81,7 @@ class TsagiSet(Dataset):
             return 2*(self.sup_seq + 1)
 
     def __getitem__(self, item):
-        input_seq = torch.zeros(self.t_in, self.max_ac, 6)
+        input_seq = torch.zeros(self.state_dim, self.t_in, self.max_ac)
         time_start = self.time_starts[item]
         idx = self.timestamps.index(time_start)
         for t in range(self.t_in):
@@ -89,8 +89,8 @@ class TsagiSet(Dataset):
             frame = frame.drop(['time', 'cong', 'int_lon', 'int_lat'], axis=1)
             frame = frame.sort_values(by=['idac'])
             frame = frame.drop(['idac'], axis=1)
-            tensor = torch.tensor(frame.values)
-            input_seq[t, :tensor.shape[0], :] = tensor[:]
+            tensor = torch.tensor(frame.values).transpose(0, 1)
+            input_seq[:, t, :tensor.shape[1]] = tensor[:]
         return input_seq, self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, ...]
 
     def get_time_slices(self):
@@ -135,7 +135,7 @@ class TsagiSet(Dataset):
 
         tensor = torch.tensor(frame.values)
 
-        output_tensor = torch.zeros(len(self.timestamps), nb_lon, nb_lat)
+        output_tensor = torch.zeros(len(self.timestamps), nb_lon, nb_lat, dtype=torch.long)
         for row in tensor:
             t = self.timestamps.index(row[0].item())
             output_tensor[t, round(row[1].item()), round(row[2].item())] = row[3].item()
@@ -143,6 +143,7 @@ class TsagiSet(Dataset):
 
 
 def main():
+    from utils import load_yaml
     param = load_yaml()
     trainset = TsagiSet(param, train=True)
     testset  = TsagiSet(param, train=False)

@@ -17,7 +17,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         logits, b = model(x)
 
         # loss function
-        loss = oce(logits, b, label)
+        loss = oce(logits, b, label, device)
 
         # backprop
         loss.backward()
@@ -27,7 +27,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         loss_list.append(loss.item())
 
         if idx % int(len(trainloader)/4) == 0:
-            print(f'Epoch {epoch}: {idx*len(x)}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%,'
+            print(f'Epoch {epoch}: {idx*len(x)}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
                   f'loss: {np.mean(loss_list):.4f}')
 
     model.eval()
@@ -38,7 +38,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         for x, label in testloader:
             x, label  = x.to(device), label.to(device)
             logits, b = model(x)
-            probs     = compute_probs(logits, b)
+            probs     = compute_probs(logits, b, device)
             preds     = probs.argmax(dim=-1)
             mse      += ((preds.flatten() - label.flatten())**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()
@@ -75,6 +75,11 @@ def one_run(param):
 
     # Initialization
     trainloader, testloader, model, optimizer = initialize(param, device)
+    print(f'Nb of timestamps: {len(trainloader.dataset.times)}')
+    print(f'Nb of sequences: {trainloader.dataset.total_seq}')
+    print(f'Trainset length: {len(trainloader.dataset)}')
+    print(f'Testset length: {len(testloader.dataset)}')
+    print(f'Max nb of a/c: {trainloader.dataset.max_ac}')
 
     # Training
     training(param, device, trainloader, testloader, model, optimizer)

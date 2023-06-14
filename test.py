@@ -11,7 +11,7 @@ def test(device, testset, model):
         for idx, (x, label) in enumerate(testset):
             x, label  = x.to(device), label.to(device)
             logits, b = model(x)
-            probs     = compute_probs(logits, b)
+            probs     = compute_probs(logits, b, device)
             preds     = probs.argmax(dim=-1)
             mse      += ((preds.flatten() - label.flatten())**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()

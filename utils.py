@@ -23,35 +23,39 @@ def load_yaml(file_name=None):
     return param
 
 
-def compute_probs(logits, b):
-    probs = torch.zeros(logits.shape[0], logits.shape[1], logits.shape[2], b.shape[1]+1)
-    cutoff = compute_cutoff(b).unsqueeze(-1).unsqueeze(-1)
-    for i in range(cutoff.shape[1]-1):
-        probs[..., i] = F.sigmoid(cutoff[:, i+1] - logits) - F.sigmoid(cutoff[:, i] - logits)
+def compute_probs(logits, b, device):
+    probs          = torch.zeros(logits.shape[0], logits.shape[1], logits.shape[2], b.shape[1]+1).to(device)
+    b              = b.unsqueeze(-1).unsqueeze(-1)
+    probs[..., 0]  = F.sigmoid(b[:, 0] - logits)
+    probs[..., -1] = 1 - F.sigmoid(b[:, -1] - logits)
+    for i in range(1, b.shape[1]):
+        probs[..., i] = F.sigmoid(b[:, i] - logits) - F.sigmoid(b[:, i-1] - logits)
     return probs
 
 
-def compute_cutoff(b):
-    cutoff = torch.zeros(b.shape[0], b.shape[1]+2)
-    cutoff[:, 0] = -float('inf')
+def compute_cutoff(b, device):
+    cutoff                  = torch.zeros(b.shape[0], b.shape[1]+2).to(device)
+    cutoff[:, 1:-1]         = b[:]
+    cutoff[:, 0]            = -float('inf')
     cutoff[:, b.shape[1]+1] = float('inf')
-    cutoff[:, 1] = b[:, 0]
-    for i in range(2, b.shape[1]+1):
-        cutoff[:, i] = cutoff[:, i-1] + b[:, i-1]
     return cutoff
 
 
-def oce(pred, b, target):
+def oce(pred, b, target, device):
     """
     Ordinal Cross-Entropy
     :param target: batch_size x T_out x nb_lon x nb_lat
     :param pred: batch_size x T_out x nb_lon x nb_lat
     :param b: batch_size x (nb_classes - 1)
+    :param device:
     :return: loss
     """
-    cutoff = compute_cutoff(b)
-    loss   = -torch.log(F.sigmoid(torch.take(cutoff, target+1) - pred) - F.sigmoid(torch.take(cutoff, target) - pred))
-    return loss.mean()
+    cutoff = compute_cutoff(b, device)
+    probs  = F.sigmoid(torch.take(cutoff, target+1) - pred) - F.sigmoid(torch.take(cutoff, target) - pred)
+    probs  = probs.clamp(1e-6, 1-1e-6)
+    loss   = -torch.log(probs)
+    loss   = loss.mean()
+    return loss
 
 
 def initialize(param, device):
