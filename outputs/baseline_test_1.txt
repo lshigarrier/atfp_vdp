@@ -1,0 +1,59 @@
+Preprocessing test set
+Building outputs
+Preprocessing done
+Start testing
+Test: 0/142 (0%)
+Test: 32/142 (20%)
+Test: 64/142 (40%)
+Test: 96/142 (60%)
+Test: 56/142 (80%)
+Accuracy: 99.98%, MSE: 0.0002
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
+Traceback (most recent call last):
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/cbook/__init__.py", line 287, in process
+    func(*args, **kwargs)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3061, in mouse_move
+    s = self._mouse_event_to_message(event)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3053, in _mouse_event_to_message
+    data_str = a.format_cursor_data(data).rstrip()
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/artist.py", line 1282, in format_cursor_data
+    neighbors = self.norm.inverse(
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/colors.py", line 1832, in inverse
+    raise ValueError("BoundaryNorm is not invertible")
+ValueError: BoundaryNorm is not invertible
+Traceback (most recent call last):
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/cbook/__init__.py", line 287, in process
+    func(*args, **kwargs)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3061, in mouse_move
+    s = self._mouse_event_to_message(event)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3053, in _mouse_event_to_message
+    data_str = a.format_cursor_data(data).rstrip()
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/artist.py", line 1282, in format_cursor_data
+    neighbors = self.norm.inverse(
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/colors.py", line 1832, in inverse
+    raise ValueError("BoundaryNorm is not invertible")
+ValueError: BoundaryNorm is not invertible
+Traceback (most recent call last):
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/cbook/__init__.py", line 287, in process
+    func(*args, **kwargs)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3061, in mouse_move
+    s = self._mouse_event_to_message(event)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3053, in _mouse_event_to_message
+    data_str = a.format_cursor_data(data).rstrip()
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/artist.py", line 1282, in format_cursor_data
+    neighbors = self.norm.inverse(
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/colors.py", line 1832, in inverse
+    raise ValueError("BoundaryNorm is not invertible")
+ValueError: BoundaryNorm is not invertible
+Traceback (most recent call last):
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/cbook/__init__.py", line 287, in process
+    func(*args, **kwargs)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3061, in mouse_move
+    s = self._mouse_event_to_message(event)
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/backend_bases.py", line 3053, in _mouse_event_to_message
+    data_str = a.format_cursor_data(data).rstrip()
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/artist.py", line 1282, in format_cursor_data
+    neighbors = self.norm.inverse(
+  File "/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/matplotlib/colors.py", line 1832, in inverse
+    raise ValueError("BoundaryNorm is not invertible")
+ValueError: BoundaryNorm is not invertible

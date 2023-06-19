@@ -2,7 +2,6 @@ import yaml
 import argparse
 import torch
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
 from models import CongCNN
@@ -24,12 +23,12 @@ def load_yaml(file_name=None):
 
 
 def compute_probs(logits, b, device):
-    probs          = torch.zeros(logits.shape[0], logits.shape[1], logits.shape[2], b.shape[1]+1).to(device)
-    b              = b.unsqueeze(-1).unsqueeze(-1)
-    probs[..., 0]  = F.sigmoid(b[:, 0] - logits)
-    probs[..., -1] = 1 - F.sigmoid(b[:, -1] - logits)
+    probs          = torch.zeros(*logits.shape, b.shape[1]+1).to(device)
+    b              = b.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    probs[..., 0]  = torch.sigmoid(b[:, 0, ...] - logits)
+    probs[..., -1] = 1 - torch.sigmoid(b[:, -1, ...] - logits)
     for i in range(1, b.shape[1]):
-        probs[..., i] = F.sigmoid(b[:, i] - logits) - F.sigmoid(b[:, i-1] - logits)
+        probs[..., i] = torch.sigmoid(b[:, i, ...] - logits) - torch.sigmoid(b[:, i-1, ...] - logits)
     return probs
 
 
@@ -51,24 +50,25 @@ def oce(pred, b, target, device):
     :return: loss
     """
     cutoff = compute_cutoff(b, device)
-    probs  = F.sigmoid(torch.take(cutoff, target+1) - pred) - F.sigmoid(torch.take(cutoff, target) - pred)
+    probs  = torch.sigmoid(torch.take(cutoff, target+1) - pred) - torch.sigmoid(torch.take(cutoff, target) - pred)
     probs  = probs.clamp(1e-6, 1-1e-6)
     loss   = -torch.log(probs)
     loss   = loss.mean()
     return loss
 
 
-def initialize(param, device):
+def initialize(param, device, train=True):
     # Create model
     model = CongCNN(param)
 
-    # Load datasets
-    trainset = TsagiSet(param, train=True)
+    # Load datasets and create data loaders
+    if train:
+        trainset = TsagiSet(param, train=True)
+        trainloader = DataLoader(trainset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
+    else:
+        trainloader = None
     testset  = TsagiSet(param, train=False)
-
-    # Create data loaders
-    trainloader = DataLoader(trainset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
-    testloader  = DataLoader(testset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
+    testloader  = DataLoader(testset, batch_size=param['batch_size'], shuffle=False, pin_memory=True, num_workers=1)
 
     # Load model
     if param['load']:

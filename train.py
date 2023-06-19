@@ -40,9 +40,9 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
             logits, b = model(x)
             probs     = compute_probs(logits, b, device)
             preds     = probs.argmax(dim=-1)
-            mse      += ((preds.flatten() - label.flatten())**2).float().sum().item()
+            mse      += ((preds - label)**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()
-            tot_num  += x.shape[0]*x.shape[1]*x.shape[2]*x.shape[3]
+            tot_num  += label.numel()
         acc = 100*tot_corr/tot_num
         mse = mse/tot_num
         print(f'Epoch: {epoch}, Loss: {np.mean(loss_list):.6f}, Accuracy: {acc:.2f}%, MSE: {mse:.4f}')
@@ -74,7 +74,7 @@ def one_run(param):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialization
-    trainloader, testloader, model, optimizer = initialize(param, device)
+    trainloader, testloader, model, optimizer = initialize(param, device, train=True)
     print(f'Nb of timestamps: {len(trainloader.dataset.times)}')
     print(f'Nb of sequences: {trainloader.dataset.total_seq}')
     print(f'Trainset length: {len(trainloader.dataset)}')
