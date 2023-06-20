@@ -22,37 +22,40 @@ def load_yaml(file_name=None):
     return param
 
 
-def compute_probs(logits, b, device):
-    probs          = torch.zeros(*logits.shape, b.shape[1]+1).to(device)
-    b              = b.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-    probs[..., 0]  = torch.sigmoid(b[:, 0, ...] - logits)
-    probs[..., -1] = 1 - torch.sigmoid(b[:, -1, ...] - logits)
-    for i in range(1, b.shape[1]):
-        probs[..., i] = torch.sigmoid(b[:, i, ...] - logits) - torch.sigmoid(b[:, i-1, ...] - logits)
+def compute_probs(logits, device):
+    probs                = torch.zeros(*logits.shape).to(device)
+    probs[:, :,  0, ...] = torch.sigmoid(logits[:, :, 1, ...] - logits[:, :, 0, ...])
+    probs[:, :, -1, ...] = 1 - torch.sigmoid(logits[:, :, -1, ...] - logits[:, :, 0, ...])
+    for i in range(1, logits.shape[2]-1):
+        probs[:, :, i, ...] = torch.sigmoid(logits[:, :, i+1, ...] - logits[:, :, 0, ...])\
+                              - torch.sigmoid(logits[:, :, i, ...] - logits[:, :, 0, ...])
     return probs
 
 
-def compute_cutoff(b, device):
-    cutoff                  = torch.zeros(b.shape[0], b.shape[1]+2).to(device)
-    cutoff[:, 1:-1]         = b[:]
-    cutoff[:, 0]            = -float('inf')
-    cutoff[:, b.shape[1]+1] = float('inf')
+def compute_cutoff(pred, device):
+    cutoff = torch.zeros(pred.shape[0], pred.shape[1], pred.shape[2]+1, pred.shape[3], pred.shape[4]).to(device)
+    cutoff[:, :, 1:-1, ...] = pred[:, :, 1:, ...]
+    cutoff[:, :,    0, ...] = -float('inf')
+    cutoff[:, :,   -1, ...] =  float('inf')
     return cutoff
 
 
-def oce(pred, b, target, device):
+def oce(pred, target, device):
     """
     Ordinal Cross-Entropy
     :param target: batch_size x T_out x nb_lon x nb_lat
     :param pred: batch_size x T_out x nb_lon x nb_lat
-    :param b: batch_size x (nb_classes - 1)
     :param device:
     :return: loss
     """
-    cutoff = compute_cutoff(b, device)
-    probs  = torch.sigmoid(torch.take(cutoff, target+1) - pred) - torch.sigmoid(torch.take(cutoff, target) - pred)
+    cutoff = compute_cutoff(pred, device)
+    temp   = target.unsqueeze(2).expand(pred.shape[0], pred.shape[1], pred.shape[2]+1, pred.shape[3], pred.shape[4])
+    probs  = torch.sigmoid(torch.take_along_dim(cutoff, temp+1, dim=2)[:, :, 0, ...] - pred[:, :, 0, ...])\
+             - torch.sigmoid(torch.take_along_dim(cutoff, temp, dim=2)[:, :, 0, ...] - pred[:, :, 0, ...])
     probs  = probs.clamp(1e-6, 1-1e-6)
-    loss   = -torch.log(probs)
+    # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by 100
+    temp   = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*1e2 + 1
+    loss   = -torch.log(probs)*temp
     loss   = loss.mean()
     return loss
 
@@ -88,3 +91,17 @@ def initialize(param, device, train=True):
         raise NotImplementedError
 
     return trainloader, testloader, model, optimizer
+
+
+def main():
+    tensor = torch.rand(3, 2)
+    index  = torch.tensor([[1, 0],
+                           [0, 0],
+                           [1, 1]])
+    print(f'tensor: shape={tensor.shape}\n{tensor}')
+    print(f'index: shape={index.shape}\n{index}')
+    print(f'take: {torch.take_along_dim(tensor, index, dim=1)}')
+
+
+if __name__ == '__main__':
+    main()

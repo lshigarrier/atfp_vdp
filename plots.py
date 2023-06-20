@@ -18,6 +18,7 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     # Create colormap
     colors    = plt.cm.jet
     colorlist = [colors(i) for i in range(colors.N)]
+    colorlist[0] = (1., 1., 1., 1.)
     cmap      = LinearSegmentedColormap.from_list('cmap', colorlist, colors.N)
     bounds    = np.linspace(0, nb_classes, nb_classes+1)
     norm      = BoundaryNorm(bounds, colors.N)
@@ -26,8 +27,8 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     ax[0].set_aspect('equal')
     ax[1].set_aspect('equal')
     plt.subplots_adjust(bottom=0.2)
-    im_pred = ax[0].imshow(preds[t_init, ...].T, cmap=cmap, norm=norm, aspect="auto")
-    im_true = ax[1].imshow(truth[t_init, ...].T, cmap=cmap, norm=norm, aspect="auto")
+    im_pred = ax[0].imshow(preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_true = ax[1].imshow(truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
     ax[0].set_xlim(0, nb_lon)
     ax[0].set_ylim(0, nb_lat)
     ax[1].set_xlim(0, nb_lon)
@@ -44,9 +45,19 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
 
     def update_eval(val):
         time = int(slider.val)
-        im_pred.set_data(preds[time, ...].T)
-        im_true.set_data(truth[time, ...].T)
+        im_pred.set_data(preds[time, ...])
+        im_true.set_data(truth[time, ...])
         plt.draw()
 
     slider.on_changed(update_eval)
-    return fig
+    return fig, slider
+
+
+def main():
+    colors    = plt.cm.jet
+    colorlist = [colors(i) for i in range(colors.N)]
+    print(colorlist)
+
+
+if __name__ == '__main__':
+    main()

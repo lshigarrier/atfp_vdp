@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 22})
 import time
@@ -14,10 +15,10 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         x, label = x.to(device), label.to(device)
 
         # Forward pass
-        logits, b = model(x)
+        logits = model(x)
 
         # loss function
-        loss = oce(logits, b, label, device)
+        loss = oce(logits, label, device)
 
         # backprop
         loss.backward()
@@ -28,7 +29,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
 
         if idx % int(len(trainloader)/4) == 0:
             print(f'Epoch {epoch}: {idx*len(x)}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
-                  f'loss: {np.mean(loss_list):.4f}')
+                  f'Loss: {np.mean(loss_list):.4f}')
 
     model.eval()
     with torch.no_grad():
@@ -37,15 +38,15 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         mse      = 0
         for x, label in testloader:
             x, label  = x.to(device), label.to(device)
-            logits, b = model(x)
-            probs     = compute_probs(logits, b, device)
-            preds     = probs.argmax(dim=-1)
+            logits    = model(x)
+            probs     = compute_probs(logits, device)
+            preds     = probs.argmax(dim=2)
             mse      += ((preds - label)**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()
             tot_num  += label.numel()
         acc = 100*tot_corr/tot_num
-        mse = mse/tot_num
-        print(f'Epoch: {epoch}, Loss: {np.mean(loss_list):.6f}, Accuracy: {acc:.2f}%, MSE: {mse:.4f}')
+        mse = math.sqrt(mse/tot_num)
+        print(f'Epoch: {epoch}, Loss: {np.mean(loss_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {mse:.4f}')
 
 
 def training(param, device, trainloader, testloader, model, optimizer):

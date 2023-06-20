@@ -6,7 +6,7 @@ load       : False
 
 # model
 
-channels : [16, 32, 64, 128]
+channels : [16, 32, 64, 128, 256]
 
 # dataset
 

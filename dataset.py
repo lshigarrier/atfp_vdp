@@ -120,9 +120,6 @@ class TsagiSet(Dataset):
     def compute_output(self, param):
         """
         Compute the ground truth congestion map -> max congestion per cell
-        If x << log_thr => log(1 + x/log_thr) ~= x/log_thr -> linear in x for small values
-        If x >> log_thr => log(1 + x/log_thr) ~= log(x) - log(log_thr) -> log in x for high values
-        If x = 0 => log(1 + x/log_thr) = 0
         """
         nb_lon   = int(param['nb_lon'])
         nb_lat   = int(param['nb_lat'])
@@ -153,6 +150,17 @@ def dataset_balance(param, tsagi):
         print(f'Class {i}: {int(count)} ; {100.*count/total:.2f}%')
 
 
+def dataset_iterate(loader):
+    for i, (x,y) in enumerate(loader):
+        print(f'Batch: {i}')
+        print(x.shape)
+        print(x.max().item())
+        print(x.min().item())
+        print(y.shape)
+        print(y.max().item())
+        print(y.min().item())
+
+
 def main():
     from utils import load_yaml
     param = load_yaml()
@@ -167,19 +175,8 @@ def main():
     print(f'Testset length: {len(testset)}')
     print('Testset balance')
     dataset_balance(param, testset)
-    loader = DataLoader(testset,
-                        batch_size=param['batch_size'],
-                        shuffle=True,
-                        pin_memory=True,
-                        num_workers=1)
-    for i, (x,y) in enumerate(loader):
-        print(f'Batch: {i}')
-        print(x.shape)
-        print(x.max().item())
-        print(x.min().item())
-        print(y.shape)
-        print(y.max().item())
-        print(y.min().item())
+    # loader = DataLoader(testset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
+    # dataset_iterate(loader)
 
 
 if __name__ == '__main__':

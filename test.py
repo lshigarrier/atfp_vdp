@@ -1,4 +1,5 @@
 import os
+import math
 import torch
 import matplotlib.pyplot as plt
 from utils import load_yaml, compute_probs, initialize
@@ -16,20 +17,21 @@ def test(param, device, testloader, model):
         mse      = 0
 
         for idx, (x, label) in enumerate(testloader):
-            x, label  = x.to(device), label.to(device)
-            logits, b = model(x)
-            probs     = compute_probs(logits, b, device)
-            preds     = probs.argmax(dim=-1)
+            x, label = x.to(device), label.to(device)
+            logits   = model(x)
+            probs    = compute_probs(logits, device)
+            preds    = probs.argmax(dim=2)
             pred_tensor[t:t+preds.shape[0], ...] = preds[:, -1, ...]
             true_tensor[t:t+label.shape[0], ...] = label[:, -1, ...]
+            t        += preds.shape[0]
             mse      += ((preds - label)**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()
             tot_num  += label.numel()
             if idx % int(len(testloader)/4) == 0:
                 print(f'Test: {idx*len(x)}/{len(testloader.dataset)} ({100.*idx/len(testloader):.0f}%)')
         acc = 100*tot_corr/tot_num
-        mse = mse / tot_num
-        print(f'Accuracy: {acc:.2f}%, MSE: {mse:.4f}')
+        mse = math.sqrt(mse/tot_num)
+        print(f'Accuracy: {acc:.2f}%, RMSE: {mse:.4f}')
 
         return pred_tensor, true_tensor
 
