@@ -1,4 +1,4 @@
-name       : baseline2
+name       : resnet1
 model      : weights.pt
 seed       : 0
 gpu_number : null

@@ -1,0 +1,23 @@
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Max nb of a/c: 785
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Trainset balance
+Class 0: 5111781 ; 91.08%
+Class 1: 125180 ; 2.23%
+Class 2: 125179 ; 2.23%
+Class 3: 125180 ; 2.23%
+Class 4: 125180 ; 2.23%
+Testset length: 142
+Testset balance
+Class 0: 1642454 ; 84.23%
+Class 1: 76887 ; 3.94%
+Class 2: 76886 ; 3.94%
+Class 3: 76886 ; 3.94%
+Class 4: 76887 ; 3.94%

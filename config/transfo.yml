@@ -1,0 +1,28 @@
+name       : transfo1
+model      : weights.pt
+seed       : 0
+gpu_number : null
+load       : False
+
+# model
+
+# N, h, d, n, l
+dim      : [6, 8, 4710, 256, 512]
+channels : [4710, 4096, 4096, 4096, 2500, 2500, 2500]
+
+# dataset
+
+path        : ./data/20200718_C_NEW.feather
+split_ratio : 0.1
+T_in        : 160
+T_out       : 160
+nb_lon      : 50
+nb_lat      : 50
+nb_classes  : 5
+
+# training
+
+batch_size    : 64
+optimizer     : adam
+learning_rate : 0.001
+epochs        : 5

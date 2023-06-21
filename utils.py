@@ -4,7 +4,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
-from models import CongCNN
+from attention import CongTrans
 
 
 def load_yaml(file_name=None):
@@ -22,47 +22,26 @@ def load_yaml(file_name=None):
     return param
 
 
-def compute_probs(logits, device):
-    probs                = torch.zeros(*logits.shape).to(device)
-    probs[:, :,  0, ...] = torch.sigmoid(logits[:, :, 1, ...] - logits[:, :, 0, ...])
-    probs[:, :, -1, ...] = 1 - torch.sigmoid(logits[:, :, -1, ...] - logits[:, :, 0, ...])
-    for i in range(1, logits.shape[2]-1):
-        probs[:, :, i, ...] = torch.sigmoid(logits[:, :, i+1, ...] - logits[:, :, 0, ...])\
-                              - torch.sigmoid(logits[:, :, i, ...] - logits[:, :, 0, ...])
-    return probs
-
-
-def compute_cutoff(pred, device):
-    cutoff = torch.zeros(pred.shape[0], pred.shape[1], pred.shape[2]+1, pred.shape[3], pred.shape[4]).to(device)
-    cutoff[:, :, 1:-1, ...] = pred[:, :, 1:, ...]
-    cutoff[:, :,    0, ...] = -float('inf')
-    cutoff[:, :,   -1, ...] =  float('inf')
-    return cutoff
-
-
-def oce(pred, target, device):
+def oce(probs, target):
     """
     Ordinal Cross-Entropy
-    :param target: batch_size x T_out x nb_lon x nb_lat
-    :param pred: batch_size x T_out x nb_lon x nb_lat
-    :param device:
+    :param target: batch_size x T_out x (nb_lon x nb_lat)
+    :param probs: batch_size x T_out x (nb_lon x nb_lat) x nb_classes
     :return: loss
     """
-    cutoff = compute_cutoff(pred, device)
-    temp   = target.unsqueeze(2).expand(pred.shape[0], pred.shape[1], pred.shape[2]+1, pred.shape[3], pred.shape[4])
-    probs  = torch.sigmoid(torch.take_along_dim(cutoff, temp+1, dim=2)[:, :, 0, ...] - pred[:, :, 0, ...])\
-             - torch.sigmoid(torch.take_along_dim(cutoff, temp, dim=2)[:, :, 0, ...] - pred[:, :, 0, ...])
-    probs  = probs.clamp(1e-6, 1-1e-6)
+    probs = probs.clamp(1e-6, 1-1e-6)
+    idx   = target.unsqueeze(3).expand(*target.shape, probs.shape[3])
+    probs = torch.take_along_dim(probs, idx, dim=3)[..., 0]
     # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by 100
-    temp   = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*1e2 + 1
-    loss   = -torch.log(probs)*temp
-    loss   = loss.mean()
+    coef  = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*1e2 + 1
+    loss  = -torch.log(probs)*coef
+    loss  = loss.mean()
     return loss
 
 
 def initialize(param, device, train=True):
     # Create model
-    model = CongCNN(param)
+    model = CongTrans(param)
 
     # Load datasets and create data loaders
     if train:

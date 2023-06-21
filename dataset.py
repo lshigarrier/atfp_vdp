@@ -83,7 +83,7 @@ class TsagiSet(Dataset):
             return 2*(self.sup_seq + 1)
 
     def __getitem__(self, item):
-        input_seq = torch.zeros(self.state_dim, self.t_in, self.max_ac)
+        input_seq = torch.zeros(self.t_in, self.max_ac*self.state_dim)
         time_start = self.time_starts[item]
         idx = self.timestamps.index(time_start)
         for t in range(self.t_in):
@@ -92,7 +92,7 @@ class TsagiSet(Dataset):
             frame = frame.sort_values(by=['idac'])
             frame = frame.drop(['idac'], axis=1)
             tensor = torch.tensor(frame.values).transpose(0, 1)
-            input_seq[:, t, :tensor.shape[1]] = tensor[:]
+            input_seq[t, :tensor.numel()] = tensor.flatten()
         return input_seq, self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, ...]
 
     def get_time_slices(self):
@@ -140,7 +140,7 @@ class TsagiSet(Dataset):
             t = self.timestamps.index(row[0].item())
             output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(),
                                                                                           param['nb_classes'])
-        return output_tensor
+        return output_tensor.view(self.len_seq, -1)
 
 
 def dataset_balance(param, tsagi):

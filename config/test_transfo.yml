@@ -1,4 +1,4 @@
-name       : baseline2
+name       : transfo1
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -6,7 +6,9 @@ load       : True
 
 # model
 
-channels : [16, 32, 64, 128, 256]
+# N, h, d, n, l
+dim : [6, 8, 4710, 256, 512]
+
 
 # dataset
 
