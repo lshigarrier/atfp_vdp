@@ -18,7 +18,7 @@ def test(param, device, testloader, model):
 
         for idx, (x, label) in enumerate(testloader):
             x, label = x.to(device), label.to(device)
-            probs    = model(x)
+            probs    = model(x, device)
             preds    = probs.argmax(dim=3)
             pred_tensor[t:t+preds.shape[0], ...] = preds[:, -1, ...].view(preds.shape[0],
                                                                           param['nb_lon'],

@@ -1,4 +1,4 @@
-name       : transfo1
+name       : transfo2
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -6,9 +6,13 @@ load       : True
 
 # model
 
-# N, h, d, n, l
-dim : [6, 8, 4710, 256, 512]
-
+# N, h, n, l
+# N: nb of multi-heads
+# h: nb of heads per multi-head
+# n: dimension of query and key
+# l: dimension of value
+dim      : [12, 8, 512, 512]
+channels : [4710, 4096, 4096, 4096, 4096, 4096, 4096, 2500, 2500, 2500, 2500, 2500, 2500]
 
 # dataset
 

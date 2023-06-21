@@ -15,7 +15,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         x, label = x.to(device), label.to(device)
 
         # Forward pass
-        probs = model(x)
+        probs = model(x, device)
 
         # loss function
         loss = oce(probs, label)
@@ -38,7 +38,7 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         rmse     = 0
         for x, label in testloader:
             x, label  = x.to(device), label.to(device)
-            probs     = model(x)
+            probs     = model(x, device)
             preds     = probs.argmax(dim=3)
             rmse     += ((preds - label)**2).float().sum().item()
             tot_corr += torch.eq(preds, label).float().sum().item()

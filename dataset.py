@@ -140,7 +140,7 @@ class TsagiSet(Dataset):
             t = self.timestamps.index(row[0].item())
             output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(),
                                                                                           param['nb_classes'])
-        return output_tensor.view(self.len_seq, -1)
+        return output_tensor.view(len(self.timestamps), -1)
 
 
 def dataset_balance(param, tsagi):

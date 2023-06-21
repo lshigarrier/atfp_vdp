@@ -1,0 +1,48 @@
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Testset length: 142
+Max nb of a/c: 785
+Start training
+Epoch 1: 0/1288 0%, Loss: 67.8522
+Epoch 1: 320/1288 24%, Loss: 48.3559
+Epoch 1: 640/1288 48%, Loss: 38.4421
+Epoch 1: 960/1288 71%, Loss: 32.9708
+Epoch 1: 160/1288 95%, Loss: 29.8505
+Epoch: 1, Loss: 29.850494, Accuracy: 5.92%, MSE: 10.3490
+Epoch training time (s): 443.392050743103
+Epoch 2: 0/1288 0%, Loss: 18.3623
+Epoch 2: 320/1288 24%, Loss: 20.3928
+Epoch 2: 640/1288 48%, Loss: 20.3116
+Epoch 2: 960/1288 71%, Loss: 20.2661
+Epoch 2: 160/1288 95%, Loss: 19.9237
+Epoch: 2, Loss: 19.923651, Accuracy: 3.92%, MSE: 2.9593
+Epoch training time (s): 441.11294889450073
+Epoch 3: 0/1288 0%, Loss: 20.7127
+Epoch 3: 320/1288 24%, Loss: 19.7417
+Epoch 3: 640/1288 48%, Loss: 19.3163
+Epoch 3: 960/1288 71%, Loss: 19.6230
+Epoch 3: 160/1288 95%, Loss: 19.7751
+Epoch: 3, Loss: 19.775117, Accuracy: 4.00%, MSE: 5.0001
+Epoch training time (s): 441.1723449230194
+Epoch 4: 0/1288 0%, Loss: 19.6617
+Epoch 4: 320/1288 24%, Loss: 18.8329
+Epoch 4: 640/1288 48%, Loss: 19.1443
+Epoch 4: 960/1288 71%, Loss: 19.0538
+Epoch 4: 160/1288 95%, Loss: 19.2295
+Epoch: 4, Loss: 19.229548, Accuracy: 4.04%, MSE: 9.2251
+Epoch training time (s): 435.0473442077637
+Epoch 5: 0/1288 0%, Loss: 20.3714
+Epoch 5: 320/1288 24%, Loss: 19.4968
+Epoch 5: 640/1288 48%, Loss: 18.7677
+Epoch 5: 960/1288 71%, Loss: 18.9340
+Epoch 5: 160/1288 95%, Loss: 19.3204
+Epoch: 5, Loss: 19.320427, Accuracy: 4.42%, MSE: 4.9798
+Epoch training time (s): 455.4493911266327
+Training time (s): 2216.316730737686

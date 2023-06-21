@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,7 +7,7 @@ import torch.nn.functional as F
 class AttentionHead(nn.Module):
     def __init__(self, d, n, l):
         super().__init__()
-        self.d     = torch.sqrt(d)
+        self.d     = math.sqrt(d)
         self.query = nn.Linear(d, n, bias=False)
         self.key   = nn.Linear(d, n, bias=False)
         self.value = nn.Linear(d, l, bias=False)
@@ -40,7 +41,7 @@ class MultiHead(nn.Module):
 class CongTrans(nn.Module):
     def __init__(self, param):
         super().__init__()
-        N, h, d, n, l = param['dim']
+        N, h, n, l    = param['dim']
         channels      = param['channels']
         self.nb_class = param['nb_classes']
         self.N        = N
@@ -54,11 +55,11 @@ class CongTrans(nn.Module):
                                                               self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 
-    def forward(self, x):
+    def forward(self, x, device):
         for i in range(self.N):
-            x = self.multi(x)
-            x = self.fc(x)
-        probs = torch.zeros(*x.shape, self.nb_class)
+            x = self.multi[i](x)
+            x = self.fc[i](x)
+        probs = torch.zeros(*x.shape, self.nb_class).to(device)
         probs[..., 0]  = torch.sigmoid(self.cutoff[..., 0] - x)
         probs[..., -1] = 1 - torch.sigmoid(self.cutoff[..., -1] - x)
         for i in range(1, self.nb_class - 1):
