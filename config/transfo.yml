@@ -11,8 +11,8 @@ load       : False
 # h: nb of heads per multi-head
 # n: dimension of query and key
 # l: dimension of value
-dim      : [12, 8, 512, 512]
-channels : [4710, 4096, 4096, 4096, 4096, 4096, 4096, 2500, 2500, 2500, 2500, 2500, 2500]
+dim      : [6, 8, 128, 256]
+channels : [4710, 4096, 2048, 1024, 1024, 2048, 2500]
 
 # dataset
 
@@ -29,4 +29,4 @@ nb_classes  : 5
 batch_size    : 64
 optimizer     : adam
 learning_rate : 0.001
-epochs        : 5
+epochs        : 50

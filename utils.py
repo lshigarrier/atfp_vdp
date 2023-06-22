@@ -42,7 +42,7 @@ def oce(probs, target):
 def initialize(param, device, train=True):
     # Create model
     print('Initialize model')
-    model = CongTrans(param)
+    model = CongTrans(param, device)
     nb_param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Trainable parameters: {nb_param}')
 

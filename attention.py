@@ -39,25 +39,53 @@ class MultiHead(nn.Module):
 
 
 class CongTrans(nn.Module):
-    def __init__(self, param):
+    def __init__(self, param, device):
         super().__init__()
         N, h, n, l    = param['dim']
-        channels      = param['channels']
+        self.channels = param['channels']
         self.nb_class = param['nb_classes']
+        self.t_in     = param['T_in']
         self.N        = N
+        self.pos      = self.get_positional_encoding(device)
         self.multi    = nn.ModuleList()
         self.fc       = nn.ModuleList()
+        self.norm1    = nn.ModuleList()
+        self.norm2    = nn.ModuleList()
         for i in range(N):
-            self.multi.append(MultiHead(h, channels[i], n, l))
-            self.fc.append(nn.Linear(channels[i], channels[i+1]))
+            if i != 0:
+                self.norm1.append(nn.LayerNorm(self.channels[i]))
+            self.multi.append(MultiHead(h, self.channels[i], n, l))
+            self.norm2.append(nn.LayerNorm(self.channels[i]))
+            self.fc.append(nn.Linear(self.channels[i], self.channels[i+1]))
         self.cutoff = nn.parameter.Parameter(data=torch.zeros(param['T_out'],
                                                               param['nb_lon']*param['nb_lat'],
                                                               self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 
+    def get_positional_encoding(self, device):
+        d = self.channels[0]
+        if d % 2 != 0:
+            raise RuntimeError
+        pos = torch.zeros(self.t_in, d).to(device)
+        for t in range(self.t_in):
+            pos[t, :] = t + 1
+        omega = torch.ones(1, d//2).to(device)
+        for k in range(d//2):
+            omega[0, k] = 1/1000**(2*k/d)
+        omega = omega.repeat_interleave(2, dim=1)
+        pos   = pos*omega
+        phase = torch.tensor([0, torch.pi/2]).to(device)
+        phase = phase.repeat(d//2).unsqueeze(0)
+        pos   = torch.sin(pos + phase)
+        return pos
+
     def forward(self, x, device):
+        x = x + self.pos
         for i in range(self.N):
+            if i != 0:
+                x = self.norm1[i-1](x)
             x = self.multi[i](x)
+            x = self.norm2[i](x)
             x = self.fc[i](x)
         probs = torch.zeros(*x.shape, self.nb_class).to(device)
         probs[..., 0]  = torch.sigmoid(self.cutoff[..., 0] - x)
@@ -66,3 +94,32 @@ class CongTrans(nn.Module):
             probs[..., i] = torch.sigmoid(self.cutoff[..., i] - x) \
                             - torch.sigmoid(self.cutoff[..., i-1] - x)
         return probs
+
+
+def main():
+    d    = 6
+    t_in = 8
+    if d % 2 != 0:
+        raise RuntimeError
+    pos = torch.zeros(t_in, d)
+    for t in range(t_in):
+        pos[t, :] = t + 1
+    print(pos)
+    omega = torch.ones(1, d // 2)
+    for k in range(d // 2):
+        omega[0, k] = 1 / 1000 ** (2 * k / d)
+    omega = omega.repeat_interleave(2, dim=1)
+    print(f'omega: shape={omega.shape}\n{omega}')
+    pos = pos * omega
+    print(pos)
+    phase = torch.tensor([0, torch.pi / 2])
+    phase = phase.repeat(d // 2).unsqueeze(0)
+    print(f'phase: shape={phase.shape}\n{phase}')
+    pos = pos + phase
+    print(pos)
+    pos = torch.sin(pos)
+    print(f'pos: shape={pos.shape}\n{pos}')
+
+
+if __name__ == '__main__':
+    main()
