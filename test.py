@@ -16,20 +16,19 @@ def test(param, device, testloader, model):
         tot_num  = 0
         rmse     = 0
 
-        for idx, (x, label) in enumerate(testloader):
-            x, label = x.to(device), label.to(device)
-            probs    = model(x, device)
-            preds    = probs.argmax(dim=3)
-            pred_tensor[t:t+preds.shape[0], ...] = preds[:, -1, ...].view(preds.shape[0],
-                                                                          param['nb_lon'],
-                                                                          param['nb_lat'])
-            true_tensor[t:t+label.shape[0], ...] = label[:, -1, ...].view(preds.shape[0],
-                                                                          param['nb_lon'],
-                                                                          param['nb_lat'])
+        for idx, (x, y) in enumerate(testloader):
+            x, y  = x.to(device), y.to(device)[:, 1:, :]
+            preds = model.inference(x)
+            pred_tensor[t:t+preds.shape[0], ...] = preds[:, -1, :].view(preds.shape[0],
+                                                                        param['nb_lon'],
+                                                                        param['nb_lat'])
+            true_tensor[t:t+y.shape[0], ...] = y[:, -1, :].view(y.shape[0],
+                                                                param['nb_lon'],
+                                                                param['nb_lat'])
             t        += preds.shape[0]
-            rmse     += ((preds - label)**2).float().sum().item()
-            tot_corr += torch.eq(preds, label).float().sum().item()
-            tot_num  += label.numel()
+            rmse     += ((preds - y)**2).float().sum().item()
+            tot_corr += torch.eq(preds, y).float().sum().item()
+            tot_num  += y.numel()
             if idx % int(len(testloader)/4) == 0:
                 print(f'Test: {idx*len(x)}/{len(testloader.dataset)} ({100.*idx/len(testloader):.0f}%)')
         acc  = 100*tot_corr/tot_num
@@ -48,9 +47,9 @@ def one_test_run(param):
 
     # Declare CPU/GPU usage
     if param['gpu_number'] is not None:
-        os.environ["CUDA_DEVICE_ORDER"]    = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = param['gpu_number']
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        os.environ['CUDA_DEVICE_ORDER']    = 'PCI_BUS_ID'
+        os.environ['CUDA_VISIBLE_DEVICES'] = param['gpu_number']
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Initialization
     trainloader, testloader, model, optimizer = initialize(param, device, train=False)

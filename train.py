@@ -8,21 +8,21 @@ import torch
 from utils import load_yaml, oce, initialize
 
 
-def train(device, trainloader, testloader, model, optimizer, epoch):
+def train(param, device, trainloader, testloader, model, optimizer, epoch):
     loss_list = []
-    for idx, (x, label) in enumerate(trainloader):
+    for idx, (x, y) in enumerate(trainloader):
         optimizer.zero_grad()
-        x, label = x.to(device), label.to(device)
+        x, y = x.to(device), y.to(device)
 
         # Forward pass
-        probs = model(x, device)
+        probs = model(x, y)
 
         # loss function
-        loss = oce(probs, label)
+        loss = oce(probs, y, param)
 
         # backprop
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), param['clip'])
         optimizer.step()
 
         loss_list.append(loss.item())
@@ -36,13 +36,12 @@ def train(device, trainloader, testloader, model, optimizer, epoch):
         tot_corr = 0
         tot_num  = 0
         rmse     = 0
-        for x, label in testloader:
-            x, label  = x.to(device), label.to(device)
-            probs     = model(x, device)
-            preds     = probs.argmax(dim=3)
-            rmse     += ((preds - label)**2).float().sum().item()
-            tot_corr += torch.eq(preds, label).float().sum().item()
-            tot_num  += label.numel()
+        for x, y in testloader:
+            x, y  = x.to(device), y.to(device)[:, 1:, :]
+            preds     = model.inference(x)
+            rmse     += ((preds - y)**2).float().sum().item()
+            tot_corr += torch.eq(preds, y).float().sum().item()
+            tot_num  += y.numel()
         acc  = 100*tot_corr/tot_num
         rmse = math.sqrt(rmse/tot_num)
         print(f'Epoch: {epoch}, Loss: {np.mean(loss_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
@@ -53,7 +52,7 @@ def training(param, device, trainloader, testloader, model, optimizer):
     tac = time.time()
     for epoch in range(1, param['epochs'] + 1):
         tic = time.time()
-        train(device, trainloader, testloader, model, optimizer, epoch)
+        train(param, device, trainloader, testloader, model, optimizer, epoch)
         print(f'Epoch training time (s): {time.time() - tic}')
     checkpoint = model.state_dict()
     torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
@@ -69,9 +68,9 @@ def one_run(param):
 
     # Declare CPU/GPU usage
     if param['gpu_number'] is not None:
-        os.environ["CUDA_DEVICE_ORDER"]    = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = param['gpu_number']
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        os.environ['CUDA_DEVICE_ORDER']    = 'PCI_BUS_ID'
+        os.environ['CUDA_VISIBLE_DEVICES'] = param['gpu_number']
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Initialization
     trainloader, testloader, model, optimizer = initialize(param, device, train=True)

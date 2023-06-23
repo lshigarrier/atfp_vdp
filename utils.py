@@ -4,7 +4,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
-from attention import CongTrans
+from attention import TransformerEC
 
 
 def load_yaml(file_name=None):
@@ -22,38 +22,49 @@ def load_yaml(file_name=None):
     return param
 
 
-def oce(probs, target):
+def oce(probs, target, param):
     """
     Ordinal Cross-Entropy
     :param target: batch_size x T_out x (nb_lon x nb_lat)
     :param probs: batch_size x T_out x (nb_lon x nb_lat) x nb_classes
+    :param param:
     :return: loss
     """
-    probs = probs.clamp(1e-6, 1-1e-6)
-    idx   = target.unsqueeze(3).expand(*target.shape, probs.shape[3])
-    probs = torch.take_along_dim(probs, idx, dim=3)[..., 0]
-    # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by 100
-    coef  = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*1e2 + 1
+    probs  = probs.clamp(param['tol'], 1-param['tol'])
+    target = target[:, 1:, :]
+    idx    = target.unsqueeze(3).expand(*target.shape, param['nb_classes'])
+    probs  = torch.take_along_dim(probs, idx, dim=3)[..., 0]
+    # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by param['weight']
+    coef  = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*param['weight'] + 1
     loss  = -torch.log(probs)*coef
     loss  = loss.mean()
     return loss
 
 
 def initialize(param, device, train=True):
+    # Print param
+    for key in param:
+        print(f'{key}: {param[key]}')
     # Create model
     print('Initialize model')
-    model = CongTrans(param, device)
+    model = TransformerEC(param, device)
     nb_param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Trainable parameters: {nb_param}')
 
     # Load datasets and create data loaders
+    if device == 'cpu':
+        workers = 8
+    else:
+        workers = 16
     if train:
         trainset = TsagiSet(param, train=True)
-        trainloader = DataLoader(trainset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
+        trainloader = DataLoader(trainset, batch_size=param['batch_size'],
+                                 shuffle=True, pin_memory=True, num_workers=workers)
     else:
         trainloader = None
     testset  = TsagiSet(param, train=False)
-    testloader  = DataLoader(testset, batch_size=param['batch_size'], shuffle=False, pin_memory=True, num_workers=1)
+    testloader  = DataLoader(testset, batch_size=param['batch_size'],
+                             shuffle=False, pin_memory=True, num_workers=workers)
 
     # Load model
     if param['load']:

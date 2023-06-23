@@ -35,7 +35,7 @@ def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./da
 
 class TsagiSet(Dataset):
 
-    def __init__(self, param, train=True, state_dim=6):
+    def __init__(self, param, train=True):
         """
         Load the data from a feather file
         Normalize the data
@@ -62,6 +62,8 @@ class TsagiSet(Dataset):
         self.quantiles = []
 
         # Initialize various attributes
+        self.nb_lon       = int(param['nb_lon'])
+        self.nb_lat       = int(param['nb_lat'])
         self.t_in         = int(param['T_in'])
         self.t_out        = int(param['T_out'])
         self.split_ratio  = param['split_ratio']
@@ -69,11 +71,11 @@ class TsagiSet(Dataset):
         self.total_seq    = len(self.times) - self.t_in - self.t_out + 1
         self.len_seq      = self.t_in + self.t_out
         self.sup_seq      = round(self.split_ratio * (self.total_seq + 4 * (1 - self.len_seq)) / 2 - 1)
-        self.state_dim    = state_dim
+        self.state_dim    = param['state_dim']
 
         self.time_starts, self.timestamps = self.get_time_slices()
         print('Building outputs')
-        self.output_tensor = self.compute_output(param)
+        self.output_tensor = self.compute_output(param['nb_classes'])
         print('Preprocessing done')
 
     def __len__(self):
@@ -93,7 +95,9 @@ class TsagiSet(Dataset):
             frame = frame.drop(['idac'], axis=1)
             tensor = torch.tensor(frame.values).transpose(0, 1)
             input_seq[t, :tensor.numel()] = tensor.flatten()
-        return input_seq, self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, ...]
+        out_seq        = torch.ones(self.t_out+1, self.nb_lon*self.nb_lat)
+        out_seq[1:, :] = self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, :]
+        return input_seq, out_seq
 
     def get_time_slices(self):
         train_seq = round((self.total_seq - 2*(self.len_seq + self.sup_seq))/3)
@@ -117,29 +121,25 @@ class TsagiSet(Dataset):
                 return i
         return nb_classes - 1
 
-    def compute_output(self, param):
+    def compute_output(self, nb_classes):
         """
         Compute the ground truth congestion map -> max congestion per cell
         """
-        nb_lon   = int(param['nb_lon'])
-        nb_lat   = int(param['nb_lat'])
-
-        self.data['int_lon'] = (self.data['lon']*(nb_lon - 1)).round()
-        self.data['int_lat'] = (self.data['lat']*(nb_lon - 1)).round()
+        self.data['int_lon'] = (self.data['lon']*(self.nb_lon - 1)).round()
+        self.data['int_lat'] = (self.data['lat']*(self.nb_lat - 1)).round()
 
         frame = self.data.loc[:, ['time', 'int_lon', 'int_lat', 'cong']]
         frame = frame[frame['time'].isin(self.timestamps)]
         frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'int_lon', 'int_lat'])
         frame = frame.sort_values(by=['time', 'int_lon', 'int_lat'])
-        for i in range(1, param['nb_classes'] - 1):
-            self.quantiles.append(frame['cong'].quantile(q=i/(param['nb_classes']-1)))
+        for i in range(1, nb_classes-1):
+            self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
         tensor = torch.tensor(frame.values)
 
-        output_tensor = torch.zeros(len(self.timestamps), nb_lon, nb_lat, dtype=torch.long)
+        output_tensor = torch.zeros(len(self.timestamps), self.nb_lon, self.nb_lat, dtype=torch.long)
         for row in tensor:
             t = self.timestamps.index(row[0].item())
-            output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(),
-                                                                                          param['nb_classes'])
+            output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(), nb_classes)
         return output_tensor.view(len(self.timestamps), -1)
 
 

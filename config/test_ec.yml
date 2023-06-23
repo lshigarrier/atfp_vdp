@@ -1,12 +1,13 @@
-name       : resnet1
+name       : ec1
 model      : weights.pt
 seed       : 0
 gpu_number : null
-load       : False
+load       : True
 
 # model
 
-channels : [16, 32, 64, 128, 256]
+# n, h
+dim : [2, 2]
 
 # dataset
 
@@ -17,10 +18,16 @@ T_out       : 160
 nb_lon      : 50
 nb_lat      : 50
 nb_classes  : 5
+state_dim   : 6
+max_ac      : 785
 
 # training
 
-batch_size    : 64
+batch_size    : 32
 optimizer     : adam
 learning_rate : 0.001
-epochs        : 5
+epochs        : 50
+clip          : 10
+weight        : 10
+tol           : 1e-6
+
