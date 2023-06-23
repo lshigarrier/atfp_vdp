@@ -29,5 +29,5 @@ learning_rate : 0.001
 epochs        : 50
 clip          : 10
 weight        : 10
-tol           : 1e-6
+tol           : 0.000001
 

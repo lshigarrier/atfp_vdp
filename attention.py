@@ -51,27 +51,28 @@ class AttentionHead(nn.Module):
             a    = a + mask
         a = F.softmax(a, dim=3)  # b x h x l x l
         a = torch.matmul(a, v).transpose(1, 2)  # b x l x h x s
-        return x + a.view(a.shape[0], a.shape[1], -1)  # b x l x h.s
+        return x + a.reshape(a.shape[0], a.shape[1], -1)  # b x l x h.s
 
 
 class FinalHead(nn.Module):
     """
     Last Multi Head of the encoder
     """
-    def __init__(self, h, d):
+    def __init__(self, h, d, dd):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
         self.h     = h
         self.key   = nn.Linear(d, h*(d//h), bias=False)
         self.value = nn.Linear(d, h*(d//h), bias=False)
+        self.fc    = nn.Linear(d//h, dd//h)
 
     def forward(self, x):
         k = self.key(x)
         k = k.view(k.shape[0], k.shape[1], self.h, -1).transpose(1, 2)
         v = self.value(x)
         v = v.view(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)
-        return k, v
+        return self.fc(k), self.fc(v)
 
 
 class DecoderHead(nn.Module):
@@ -95,7 +96,7 @@ class DecoderHead(nn.Module):
         a = a + mask
         a = F.softmax(a, dim=3)
         a = torch.matmul(a, v).transpose(1, 2)
-        return x + a.view(a.shape[0], a.shape[1], -1)
+        return x + a.reshape(a.shape[0], a.shape[1], -1)
 
 
 class Encoder(nn.Module):
@@ -121,7 +122,7 @@ class Encoder(nn.Module):
             self.norm2.append(nn.LayerNorm(d))
             self.fc.append(nn.Linear(d, d))
         self.norm1.append(nn.LayerNorm(d))
-        self.multi.append(FinalHead(h, d))
+        self.multi.append(FinalHead(h, d, param['nb_lon']*param['nb_lat']))
 
     def forward(self, x):
         x = x + self.pos
@@ -133,7 +134,7 @@ class Encoder(nn.Module):
             x = self.norm2[i](x)
             # Linear layer with skip connection
             x = x + F.relu(self.fc[i](x))
-        x = self.norm1[self.n-1](x)
+        x = self.norm1[self.n-2](x)
         x = self.multi[self.n-1](x)
         return x
 
@@ -159,7 +160,7 @@ class Decoder(nn.Module):
         self.norm1    = nn.ModuleList()
         self.norm2    = nn.ModuleList()
         self.norm3    = nn.ModuleList()
-        for i in range(n-1):
+        for i in range(n):
             if i != 0:
                 self.norm1.append(nn.LayerNorm(d))
             self.multi1.append(AttentionHead(h, d, device))
@@ -184,7 +185,7 @@ class Decoder(nn.Module):
             x = F.relu(self.fc[i](x)) + x
         probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
         b        = torch.zeros(*self.cutoff.shape).to(self.device)
-        b[0,  0] = self.cuttoff[0, 0]
+        b[0,  0] = self.cutoff[0, 0]
         b[0, 1:] = self.cutoff[0, 1:]**2
         b[:]     = b.cumsum(dim=1)
         probs[..., 0]  = torch.sigmoid(b[0, 0] - x)

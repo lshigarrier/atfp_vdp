@@ -95,7 +95,7 @@ class TsagiSet(Dataset):
             frame = frame.drop(['idac'], axis=1)
             tensor = torch.tensor(frame.values).transpose(0, 1)
             input_seq[t, :tensor.numel()] = tensor.flatten()
-        out_seq        = torch.ones(self.t_out+1, self.nb_lon*self.nb_lat)
+        out_seq        = torch.ones(self.t_out+1, self.nb_lon*self.nb_lat, dtype=torch.long)
         out_seq[1:, :] = self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, :]
         return input_seq, out_seq
 
