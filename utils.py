@@ -4,7 +4,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
-from attention import TransformerEC
+from attention import TransformerED
 
 
 def load_yaml(file_name=None):
@@ -35,9 +35,10 @@ def oce(probs, target, param):
     idx    = target.unsqueeze(3).expand(*target.shape, param['nb_classes'])
     probs  = torch.take_along_dim(probs, idx, dim=3)[..., 0]
     # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by param['weight']
-    coef  = torch.logical_not(torch.eq(target, torch.zeros_like(target))).float()*param['weight'] + 1
-    loss  = -torch.log(probs)*coef
-    loss  = loss.mean()
+    coef = torch.eq(target, 0)
+    coef = coef.masked_fill(~coef, param['weight']).masked_fill(coef, 1)
+    loss = -torch.log(probs)*coef
+    loss = loss.mean()
     return loss
 
 
@@ -45,26 +46,23 @@ def initialize(param, device, train=True):
     # Print param
     for key in param:
         print(f'{key}: {param[key]}')
+    print(f'device: {device}')
     # Create model
     print('Initialize model')
-    model = TransformerEC(param, device)
+    model = TransformerED(param, device)
     nb_param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Trainable parameters: {nb_param}')
 
     # Load datasets and create data loaders
-    if device == 'cpu':
-        workers = 8
-    else:
-        workers = 16
     if train:
         trainset = TsagiSet(param, train=True)
         trainloader = DataLoader(trainset, batch_size=param['batch_size'],
-                                 shuffle=True, pin_memory=True, num_workers=workers)
+                                 shuffle=True, pin_memory=True, num_workers=param['workers'])
     else:
         trainloader = None
     testset  = TsagiSet(param, train=False)
     testloader  = DataLoader(testset, batch_size=param['batch_size'],
-                             shuffle=False, pin_memory=True, num_workers=workers)
+                             shuffle=False, pin_memory=True, num_workers=param['workers'])
 
     # Load model
     if param['load']:

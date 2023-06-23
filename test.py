@@ -1,8 +1,9 @@
 import os
 import math
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
-from utils import load_yaml, initialize
+from utils import load_yaml, oce, initialize
 from plots import plot_pred
 
 
@@ -11,29 +12,37 @@ def test(param, device, testloader, model):
         pred_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
         true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
 
-        t        = 0
-        tot_corr = 0
-        tot_num  = 0
-        rmse     = 0
+        test_list = []
+        t         = 0
+        tot_corr  = 0
+        tot_num   = 0
+        rmse      = 0
 
         for idx, (x, y) in enumerate(testloader):
-            x, y  = x.to(device), y.to(device)[:, 1:, :]
-            preds = model.inference(x)
-            pred_tensor[t:t+preds.shape[0], ...] = preds[:, -1, :].view(preds.shape[0],
-                                                                        param['nb_lon'],
-                                                                        param['nb_lat'])
+            x, y  = x.to(device), y.to(device)
+            pred, prob = model.inference(x)
+            pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
+                                                                      param['nb_lon'],
+                                                                      param['nb_lat'])
             true_tensor[t:t+y.shape[0], ...] = y[:, -1, :].view(y.shape[0],
                                                                 param['nb_lon'],
                                                                 param['nb_lat'])
-            t        += preds.shape[0]
-            rmse     += ((preds - y)**2).float().sum().item()
-            tot_corr += torch.eq(preds, y).float().sum().item()
+            t        += pred.shape[0]
+            loss      = oce(prob, y, param)
+            test_list.append(loss.item())
+            y         = y[:, 1:, :]
+            rmse     += ((pred - y)**2).float().sum().item()
+            tot_corr += torch.eq(pred, y).float().sum().item()
             tot_num  += y.numel()
             if idx % int(len(testloader)/4) == 0:
-                print(f'Test: {idx*len(x)}/{len(testloader.dataset)} ({100.*idx/len(testloader):.0f}%)')
+                if idx != len(testloader)-1:
+                    total = idx*param['batch_size']
+                else:
+                    total = (idx - 1)*param['batch_size'] + len(x)
+                print(f'Test: {total}/{len(testloader.dataset)} ({100.*idx/len(testloader):.0f}%)')
         acc  = 100*tot_corr/tot_num
         rmse = math.sqrt(rmse/tot_num)
-        print(f'Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+        print(f'Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
 
         return pred_tensor, true_tensor
 

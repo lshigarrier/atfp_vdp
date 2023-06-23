@@ -28,23 +28,32 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         loss_list.append(loss.item())
 
         if idx % int(len(trainloader)/4) == 0:
-            print(f'Epoch {epoch}: {idx*len(x)}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
+            if idx != len(trainloader)-1:
+                total = idx*param['batch_size']
+            else:
+                total = (idx - 1)*param['batch_size'] + len(x)
+            print(f'Epoch {epoch}: {total}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
                   f'Loss: {np.mean(loss_list):.4f}')
 
     model.eval()
     with torch.no_grad():
-        tot_corr = 0
-        tot_num  = 0
-        rmse     = 0
+        test_list = []
+        tot_corr  = 0
+        tot_num   = 0
+        rmse      = 0
         for x, y in testloader:
-            x, y  = x.to(device), y.to(device)[:, 1:, :]
-            preds     = model.inference(x)
-            rmse     += ((preds - y)**2).float().sum().item()
-            tot_corr += torch.eq(preds, y).float().sum().item()
-            tot_num  += y.numel()
+            x, y  = x.to(device), y.to(device)
+            pred, prob = model.inference(x)
+            loss       = oce(prob, y, param)
+            test_list.append(loss.item())
+            y = y[:, 1:, :]
+            rmse      += ((pred - y)**2).float().sum().item()
+            tot_corr  += torch.eq(pred, y).float().sum().item()
+            tot_num   += y.numel()
         acc  = 100*tot_corr/tot_num
         rmse = math.sqrt(rmse/tot_num)
-        print(f'Epoch: {epoch}, Loss: {np.mean(loss_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+        print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
+              f' Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
 
 
 def training(param, device, trainloader, testloader, model, optimizer):
