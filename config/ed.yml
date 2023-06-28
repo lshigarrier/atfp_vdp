@@ -1,4 +1,4 @@
-name       : ed2
+name       : ed7
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -8,9 +8,9 @@ load       : False
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim : [3, 4]
-# embedding dimension
-emb : [1024, 256]
+dim : [6, 8]
+# embedding dimensions
+emb : [64,]
 
 # dataset
 
@@ -25,6 +25,8 @@ T_out       : 160
 nb_lon      : 50
 # nb of latitude steps
 nb_lat      : 50
+# nb of altitude steps
+nb_alt      : 5
 # nb of classes
 nb_classes  : 5
 # aircraft state dimension
@@ -32,18 +34,25 @@ state_dim   : 6
 # max nb of simultaneous aircraft
 max_ac      : 785
 
+# Hot-spot congestion prediction
+
+predict_spot : True
+# hot-spot int_lon, int_lat, int_alt
+spot         : [42, 17, 3]
+
 # training
 
 batch_size    : 64
 optimizer     : adam
 learning_rate : 0.001
-epochs        : 50
+l2_reg        : 0.001
+epochs        : 100
 # nb of workers for dataloaders
 workers       : 8
 # gradient clipping
 clip          : 10
-# weight of nonzero congestion in loss function
-weight        : 10
+# test loss increase for early stopping
+stop          : 1.1
 # probability clipping to avoid log(0)
 tol           : 0.000001
 

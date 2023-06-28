@@ -109,28 +109,33 @@ class Encoder(nn.Module):
         """
         super().__init__()
         n, h       = param['dim']
-        k1, k2     = param['emb']
+        emb_dim    = param['emb']
+        k          = emb_dim[-1]
         d          = param['max_ac']*param['state_dim']
         self.n     = n
-        self.emb1  = nn.Linear(d, k1)
-        self.emb2  = nn.Linear(k1, k2)
-        self.pos   = get_positional_encoding(k2, param['T_in'], device)
+        self.q     = len(emb_dim)
+        self.pos   = get_positional_encoding(k, param['T_in'], device)
+        self.emb   = nn.ModuleList()
         self.multi = nn.ModuleList()
         self.fc    = nn.ModuleList()
         self.norm1 = nn.ModuleList()
         self.norm2 = nn.ModuleList()
+        self.emb.append(nn.Linear(d, emb_dim[0]))
+        for i in range(len(emb_dim)-1):
+            self.emb.append(nn.Linear(emb_dim[i], emb_dim[i+1]))
         for i in range(n-1):
             if i != 0:
-                self.norm1.append(nn.LayerNorm(k2))
-            self.multi.append(AttentionHead(h, k2, device))
-            self.norm2.append(nn.LayerNorm(k2))
-            self.fc.append(nn.Linear(k2, k2))
-        self.norm1.append(nn.LayerNorm(k2))
-        self.multi.append(FinalHead(h, k2))
+                self.norm1.append(nn.LayerNorm(k))
+            self.multi.append(AttentionHead(h, k, device))
+            self.norm2.append(nn.LayerNorm(k))
+            self.fc.append(nn.Linear(k, k))
+        self.norm1.append(nn.LayerNorm(k))
+        self.multi.append(FinalHead(h, k))
 
     def forward(self, x):
-        x = F.relu(self.emb1(x))
-        x = self.emb2(x)
+        for i in range(self.q-1):
+            x = F.relu(self.emb[i](x))
+        x = self.emb[-1](x)
         x = x + self.pos
         for i in range(self.n-1):
             # LayerNorms are before the layers
@@ -155,36 +160,44 @@ class Decoder(nn.Module):
         """
         super().__init__()
         n, h          = param['dim']
-        k1, k2        = param['emb']
-        d             = param['nb_lon']*param['nb_lat']
+        emb_dim       = param['emb']
+        k             = emb_dim[-1]
+        if param['predict_spot']:
+            d = 1
+        else:
+            d = param['nb_lon']*param['nb_lat']
         self.nb_class = param['nb_classes']
         self.n        = n
+        self.q        = len(emb_dim)
         self.device   = device
-        self.emb1     = nn.Linear(d, k1)
-        self.emb2     = nn.Linear(k1, k2)
-        self.pos      = get_positional_encoding(k2, param['T_out']+1, device)
+        self.pos      = get_positional_encoding(k, param['T_out']+1, device)
+        self.emb      = nn.ModuleList()
         self.multi1   = nn.ModuleList()
         self.multi2   = nn.ModuleList()
         self.fc       = nn.ModuleList()
         self.norm1    = nn.ModuleList()
         self.norm2    = nn.ModuleList()
         self.norm3    = nn.ModuleList()
+        self.emb.append(nn.Linear(d, emb_dim[0]))
+        for i in range(len(emb_dim)-1):
+            self.emb.append(nn.Linear(emb_dim[i], emb_dim[i+1]))
         for i in range(n):
             if i != 0:
-                self.norm1.append(nn.LayerNorm(k2))
-            self.multi1.append(AttentionHead(h, k2, device))
-            self.norm2.append(nn.LayerNorm(k2))
-            self.multi2.append(DecoderHead(h, k2, device))
-            self.norm3.append(nn.LayerNorm(k2))
-            self.fc.append(nn.Linear(k2, k2))
-        self.fc.append(nn.Linear(k2, d))
+                self.norm1.append(nn.LayerNorm(k))
+            self.multi1.append(AttentionHead(h, k, device))
+            self.norm2.append(nn.LayerNorm(k))
+            self.multi2.append(DecoderHead(h, k, device))
+            self.norm3.append(nn.LayerNorm(k))
+            self.fc.append(nn.Linear(k, k))
+        self.fc.append(nn.Linear(k, d))
         self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 
     def forward(self, x, k, v):
         x = x.float()
-        x = F.relu(self.emb1(x))
-        x = self.emb2(x)
+        for i in range(self.q-1):
+            x = F.relu(self.emb[i](x))
+        x = self.emb[-1](x)
         x = x + self.pos
         for i in range(self.n):
             # LayerNorms are before the layers
@@ -213,7 +226,10 @@ class TransformerED(nn.Module):
     def __init__(self, param, device):
         super().__init__()
         self.l        = param['T_out']
-        self.d        = param['nb_lon']*param['nb_lat']
+        if param['predict_spot']:
+            self.d = 1
+        else:
+            self.d = param['nb_lon']*param['nb_lat']
         self.nb_class = param['nb_classes']
         self.device   = device
         self.encoder  = Encoder(param, device)

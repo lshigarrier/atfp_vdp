@@ -50,21 +50,33 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             rmse      += ((pred - y)**2).float().sum().item()
             tot_corr  += torch.eq(pred, y).float().sum().item()
             tot_num   += y.numel()
-        acc  = 100*tot_corr/tot_num
-        rmse = math.sqrt(rmse/tot_num)
+        acc   = 100*tot_corr/tot_num
+        rmse  = math.sqrt(rmse/tot_num)
+        mloss = np.mean(test_list)
         print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
-              f' Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+              f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+    return mloss
 
 
 def training(param, device, trainloader, testloader, model, optimizer):
     print('Start training')
-    tac = time.time()
+    tac        = time.time()
+    best_loss  = float('inf')
+    best_epoch = 0
     for epoch in range(1, param['epochs'] + 1):
-        tic = time.time()
-        train(param, device, trainloader, testloader, model, optimizer, epoch)
+        tic       = time.time()
+        test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
         print(f'Epoch training time (s): {time.time() - tic}')
-    checkpoint = model.state_dict()
-    torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
+        if test_loss < best_loss:
+            best_loss  = test_loss
+            best_epoch = epoch
+            checkpoint = model.state_dict()
+            torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
+        elif test_loss > param['stop']*best_loss:
+            print('Early stopping')
+            print(f'Best epoch: {best_epoch}')
+            print(f'Best loss: {best_loss:.6f}')
+            break
     print(f'Training time (s): {time.time() - tac}')
 
 

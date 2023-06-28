@@ -4,6 +4,28 @@ Preprocessing done
 Preprocessing test set
 Building outputs
 Preprocessing done
+Mins
+idac        0.000000
+time       60.000000
+lon        38.977399
+lat        -8.025444
+alt      -600.000000
+speed      81.043198
+head     -179.874900
+vz      -7985.000000
+cong        0.000000
+dtype: float64
+Maxs
+idac      8010.000000
+time     45420.000000
+lon         50.272926
+lat          6.904064
+alt      47000.000000
+speed      530.019811
+head       180.000000
+vz        4924.000000
+cong       130.251945
+dtype: float64
 Max nb of a/c: 785
 Nb of timestamps: 3025
 Nb of sequences: 2706
@@ -21,3 +43,16 @@ Class 1: 76887 ; 3.94%
 Class 2: 76886 ; 3.94%
 Class 3: 76886 ; 3.94%
 Class 4: 76887 ; 3.94%
+Hot-spots
+int_lon  int_lat  int_alt
+42.0     17.0     3.0        1.524926
+30.0     24.0     1.0        1.412558
+38.0     26.0     3.0        1.095503
+40.0     21.0     3.0        0.862794
+37.0     37.0     3.0        0.686929
+38.0     37.0     3.0        0.646650
+31.0     22.0     3.0        0.562461
+32.0     22.0     3.0        0.561932
+39.0     36.0     3.0        0.551282
+         22.0     3.0        0.545625
+Name: cong, dtype: float64

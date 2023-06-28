@@ -5,6 +5,16 @@ from matplotlib.widgets import Slider
 from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 
 
+def plot_spot(preds, truth):
+    fig, ax = plt.subplots(figsize=(24, 18))
+    ax.plot(range(len(truth)), truth, label='Truth')
+    ax.plot(range(len(preds)), preds, label='Prediction')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Class')
+    ax.legend()
+    return fig
+
+
 def plot_pred(preds, truth, nb_classes=5, t_init=70):
     """
     Plot the predicted congestion and the true congestion

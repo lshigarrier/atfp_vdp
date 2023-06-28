@@ -1,5 +1,6 @@
 import yaml
 import argparse
+import math
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -34,10 +35,14 @@ def oce(probs, target, param):
     target = target[:, 1:, :]
     idx    = target.unsqueeze(3).expand(*target.shape, param['nb_classes'])
     probs  = torch.take_along_dim(probs, idx, dim=3)[..., 0]
-    # If the target is NOT 0 (i.e., congestion > 0), then the loss is multiplied by param['weight']
-    coef = torch.eq(target, 0)
-    coef = coef.masked_fill(~coef, param['weight']).masked_fill(coef, 1)
-    loss = -torch.log(probs)*coef
+    loss = -torch.log(probs)
+    # Each element of the loss is multiplied by log(1/frequency_of_true_class)
+    nb_total = target.numel()
+    for i in range(param['nb_classes']):
+        coef = torch.eq(target, i)
+        nb_label = max(coef.float().sum().item(), 1)
+        coef = coef.masked_fill(coef, math.log(nb_total/nb_label)).masked_fill(~coef, 1)
+        loss = loss*coef
     loss = loss.mean()
     return loss
 
@@ -77,7 +82,7 @@ def initialize(param, device, train=True):
     if param['optimizer'] == 'sgd':
         optimizer = optim.SGD(model.parameters(), lr=param['learning_rate'])
     elif param['optimizer'] == 'adam':
-        optimizer = optim.Adam(model.parameters(), lr=param['learning_rate'])
+        optimizer = optim.Adam(model.parameters(), lr=param['learning_rate'], weight_decay=param['l2_reg'])
     else:
         raise NotImplementedError
 

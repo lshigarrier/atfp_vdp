@@ -4,13 +4,17 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import load_yaml, oce, initialize
-from plots import plot_pred
+from plots import plot_spot, plot_pred
 
 
 def test(param, device, testloader, model):
     with torch.no_grad():
-        pred_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
-        true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
+        if param['predict_spot']:
+            pred_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
+            true_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
+        else:
+            pred_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
+            true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
 
         test_list = []
         t         = 0
@@ -21,12 +25,18 @@ def test(param, device, testloader, model):
         for idx, (x, y) in enumerate(testloader):
             x, y  = x.to(device), y.to(device)
             pred, prob = model.inference(x)
-            pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
-                                                                      param['nb_lon'],
-                                                                      param['nb_lat'])
-            true_tensor[t:t+y.shape[0], ...] = y[:, -1, :].view(y.shape[0],
-                                                                param['nb_lon'],
-                                                                param['nb_lat'])
+
+            if param['predict_spot']:
+                pred_tensor[t:t + pred.shape[0]] = pred[:, -1, 0]
+                true_tensor[t:t + y.shape[0]]    = y[:, -1, 0]
+            else:
+                pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
+                                                                          param['nb_lon'],
+                                                                          param['nb_lat'])
+                true_tensor[t:t+y.shape[0], ...]    = y[:, -1, :].view(y.shape[0],
+                                                                       param['nb_lon'],
+                                                                       param['nb_lat'])
+
             t        += pred.shape[0]
             loss      = oce(prob, y, param)
             test_list.append(loss.item())
@@ -68,7 +78,10 @@ def one_test_run(param):
     preds, truth = test(param, device, testloader, model)
 
     # Plot
-    _ = plot_pred(preds, truth, param['nb_classes'])
+    if param['predict_spot']:
+        _ = plot_spot(preds, truth)
+    else:
+        _ = plot_pred(preds, truth, param['nb_classes'])
     plt.show()
 
 

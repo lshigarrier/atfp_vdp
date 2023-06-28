@@ -64,6 +64,7 @@ class TsagiSet(Dataset):
         # Initialize various attributes
         self.nb_lon       = int(param['nb_lon'])
         self.nb_lat       = int(param['nb_lat'])
+        self.nb_alt       = int(param['nb_alt'])
         self.t_in         = int(param['T_in'])
         self.t_out        = int(param['T_out'])
         self.split_ratio  = param['split_ratio']
@@ -72,7 +73,13 @@ class TsagiSet(Dataset):
         self.len_seq      = self.t_in + self.t_out
         self.sup_seq      = round(self.split_ratio * (self.total_seq + 4 * (1 - self.len_seq)) / 2 - 1)
         self.state_dim    = param['state_dim']
+        self.predict_spot = param['predict_spot']
+        if self.predict_spot:
+            self.spot = param['spot']
 
+        self.data['idx_lon'] = (self.data['lon']*(self.nb_lon - 1)).round()
+        self.data['idx_lat'] = (self.data['lat']*(self.nb_lat - 1)).round()
+        self.data['idx_alt'] = (self.data['alt']*(self.nb_alt - 1)).round()
         self.time_starts, self.timestamps = self.get_time_slices()
         print('Building outputs')
         self.output_tensor = self.compute_output(param['nb_classes'])
@@ -90,12 +97,15 @@ class TsagiSet(Dataset):
         idx = self.timestamps.index(time_start)
         for t in range(self.t_in):
             frame = self.data.loc[self.data['time'] == self.timestamps[idx + t]]
-            frame = frame.drop(['time', 'cong', 'int_lon', 'int_lat'], axis=1)
+            frame = frame.loc[:, ['idac', 'lon', 'lat', 'alt', 'speed', 'head', 'vz']]
             frame = frame.sort_values(by=['idac'])
             frame = frame.drop(['idac'], axis=1)
             tensor = torch.tensor(frame.values).transpose(0, 1)
             input_seq[t, :tensor.numel()] = tensor.flatten()
-        out_seq        = torch.ones(self.t_out+1, self.nb_lon*self.nb_lat, dtype=torch.long)
+        if self.predict_spot:
+            out_seq = torch.ones(self.t_out+1, 1, dtype=torch.long)
+        else:
+            out_seq = torch.ones(self.t_out+1, self.nb_lon*self.nb_lat, dtype=torch.long)
         out_seq[1:, :] = self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, :]
         return input_seq, out_seq
 
@@ -125,22 +135,50 @@ class TsagiSet(Dataset):
         """
         Compute the ground truth congestion map -> max congestion per cell
         """
-        self.data['int_lon'] = (self.data['lon']*(self.nb_lon - 1)).round()
-        self.data['int_lat'] = (self.data['lat']*(self.nb_lat - 1)).round()
+        if self.predict_spot:
+            frame = self.data.loc[:, ['time', 'idx_lon', 'idx_lat', 'idx_alt', 'cong']]
+            frame = frame.loc[(self.data['idx_lon']==self.spot[0]) &
+                              (self.data['idx_lat']==self.spot[1]) &
+                              (self.data['idx_alt']==self.spot[2])]
+            frame = frame.drop(['idx_lon', 'idx_lat', 'idx_alt'], axis=1)
+            frame = frame[frame['time'].isin(self.timestamps)]
+            frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time'])
 
-        frame = self.data.loc[:, ['time', 'int_lon', 'int_lat', 'cong']]
-        frame = frame[frame['time'].isin(self.timestamps)]
-        frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'int_lon', 'int_lat'])
-        frame = frame.sort_values(by=['time', 'int_lon', 'int_lat'])
-        for i in range(1, nb_classes-1):
-            self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
-        tensor = torch.tensor(frame.values)
+            for i in range(1, nb_classes-1):
+                self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
+            tensor = torch.tensor(frame.values)
 
-        output_tensor = torch.zeros(len(self.timestamps), self.nb_lon, self.nb_lat, dtype=torch.long)
-        for row in tensor:
-            t = self.timestamps.index(row[0].item())
-            output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(), nb_classes)
-        return output_tensor.view(len(self.timestamps), -1)
+            output_tensor = torch.zeros(len(self.timestamps), 1, dtype=torch.long)
+            for row in tensor:
+                t = self.timestamps.index(row[0].item())
+                output_tensor[t, 0] = self.get_class(row[1].item(), nb_classes)
+            return output_tensor
+
+        else:
+            frame = self.data.loc[:, ['time', 'idx_lon', 'idx_lat', 'cong']]
+            frame = frame[frame['time'].isin(self.timestamps)]
+            frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'idx_lon', 'idx_lat'])
+
+            for i in range(1, nb_classes-1):
+                self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
+            tensor = torch.tensor(frame.values)
+
+            output_tensor = torch.zeros(len(self.timestamps), self.nb_lon, self.nb_lat, dtype=torch.long)
+            for row in tensor:
+                t = self.timestamps.index(row[0].item())
+                output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(), nb_classes)
+            return output_tensor.view(len(self.timestamps), -1)
+
+    def get_hot_spots(self):
+        """
+        Compute the sum of complexity in each cell
+        """
+        frame = self.data.loc[:, ['time', 'idx_lon', 'idx_lat', 'idx_alt', 'cong']]
+        frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'idx_lon', 'idx_lat', 'idx_alt'])
+        frame = frame.groupby(['idx_lon', 'idx_lat', 'idx_alt'])['cong'].sum()
+        frame = frame.sort_values(ascending=False)
+        print(frame.head(10))
+        return frame
 
 
 def dataset_balance(param, tsagi):
@@ -166,6 +204,7 @@ def main():
     param = load_yaml()
     trainset = TsagiSet(param, train=True)
     testset  = TsagiSet(param, train=False)
+    print(f'Mins\n{trainset.mins}\nMaxs\n{trainset.maxs}')
     print(f'Max nb of a/c: {trainset.max_ac}')
     print(f'Nb of timestamps: {len(trainset.times)}')
     print(f'Nb of sequences: {trainset.total_seq}')
@@ -175,6 +214,8 @@ def main():
     print(f'Testset length: {len(testset)}')
     print('Testset balance')
     dataset_balance(param, testset)
+    print('Hot-spots')
+    trainset.get_hot_spots()
     # loader = DataLoader(testset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
     # dataset_iterate(loader)
 
