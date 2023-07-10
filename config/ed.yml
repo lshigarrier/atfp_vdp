@@ -8,9 +8,9 @@ load       : False
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim : [6, 8]
+dim : [2, 2]
 # embedding dimensions
-emb : [64,]
+emb : [256,]
 
 # dataset
 
@@ -36,7 +36,7 @@ max_ac      : 785
 
 # Hot-spot congestion prediction
 
-predict_spot : True
+predict_spot : False
 # hot-spot int_lon, int_lat, int_alt
 spot         : [42, 17, 3]
 

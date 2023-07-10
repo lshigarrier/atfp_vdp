@@ -1,6 +1,6 @@
 import yaml
 import argparse
-import math
+# import math
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -36,13 +36,19 @@ def oce(probs, target, param):
     idx    = target.unsqueeze(3).expand(*target.shape, param['nb_classes'])
     probs  = torch.take_along_dim(probs, idx, dim=3)[..., 0]
     loss = -torch.log(probs)
-    # Each element of the loss is multiplied by log(1/frequency_of_true_class)
+    # Remove elements from the loss by multiplying them by 0
+    # such that the proportion of 0 in target is 1/param['nb_classes']
     nb_total = target.numel()
-    for i in range(param['nb_classes']):
-        coef = torch.eq(target, i)
-        nb_label = max(coef.float().sum().item(), 1)
-        coef = coef.masked_fill(coef, math.log(nb_total/nb_label)).masked_fill(~coef, 1)
-        loss = loss*coef
+    coef     = torch.eq(target, 0)
+    nb_zero  = coef.long().sum().item()
+    remove   = int(max(nb_zero - nb_total/param['nb_classes'], 0))
+    if remove > 0:
+        index = torch.nonzero(coef, as_tuple=False)
+        index = index[torch.randperm(nb_zero)]
+        index = index[:nb_zero-remove,:]
+        coef[index.t().tolist()] = False
+        coef  = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
+        loss  = loss*coef
     loss = loss.mean()
     return loss
 
