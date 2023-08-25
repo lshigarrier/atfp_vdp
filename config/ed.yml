@@ -11,6 +11,8 @@ load       : False
 dim : [2, 2]
 # embedding dimensions
 emb : [256,]
+# use uncertainty quantification
+vdp : True
 
 # dataset
 

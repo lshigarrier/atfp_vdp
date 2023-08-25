@@ -6,6 +6,7 @@ import time
 import os
 import torch
 from utils import load_yaml, oce, initialize
+from vdp import loss_vdp
 
 
 def train(param, device, trainloader, testloader, model, optimizer, epoch):
@@ -15,10 +16,12 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         x, y = x.to(device), y.to(device)
 
         # Forward pass
-        probs = model(x, y)
-
-        # loss function
-        loss = oce(probs, y, param)
+        if param['vdp']:
+            probs, var_prob = model(x, y)
+            loss = loss_vdp(probs, var_prob, y, model, param)
+        else:
+            probs = model(x, y)
+            loss = oce(probs, y, param)
 
         # backprop
         loss.backward()
@@ -43,8 +46,12 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         rmse      = 0
         for x, y in testloader:
             x, y  = x.to(device), y.to(device)
-            pred, prob = model.inference(x)
-            loss       = oce(prob, y, param)
+            if param['vdp']:
+                pred, prob, var_prob = model.inference(x)
+                loss                 = loss_vdp(prob, var_prob, y, model, param)
+            else:
+                pred, prob = model.inference(x)
+                loss       = oce(prob, y, param)
             test_list.append(loss.item())
             y = y[:, 1:, :]
             rmse      += ((pred - y)**2).float().sum().item()
@@ -109,7 +116,7 @@ def main():
     # Detect anomaly in autograd
     torch.autograd.set_detect_anomaly(True)
 
-    param = load_yaml('baseline')
+    param = load_yaml('ed')
     one_run(param)
 
 

@@ -211,7 +211,7 @@ class Decoder(nn.Module):
             x = F.relu(self.fc[i](x)) + x
         x        = self.fc[-1](x)
         probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
-        b        = torch.zeros(*self.cutoff.shape).to(self.device)
+        b        = torch.zeros_like(self.cutoff).to(self.device)
         b[0,  0] = self.cutoff[0, 0]
         b[0, 1:] = self.cutoff[0, 1:]**2
         b[:]     = b.cumsum(dim=1)

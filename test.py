@@ -3,8 +3,9 @@ import math
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from vdp import loss_vdp
 from utils import load_yaml, oce, initialize
-from plots import plot_spot, plot_pred
+from plots import plot_spot, plot_pred, plot_pred_vdp
 
 
 def test(param, device, testloader, model):
@@ -12,9 +13,13 @@ def test(param, device, testloader, model):
         if param['predict_spot']:
             pred_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
             true_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
+            if param['vdp']:
+                var_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
         else:
             pred_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
             true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
+            if param['vdp']:
+                var_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
 
         test_list = []
         t         = 0
@@ -24,11 +29,17 @@ def test(param, device, testloader, model):
 
         for idx, (x, y) in enumerate(testloader):
             x, y  = x.to(device), y.to(device)
-            pred, prob = model.inference(x)
-
+            if param['vdp']:
+                pred, prob, var_prob = model.inference(x)
+                idx = pred.unsqueeze(3).expand(*pred.shape, param['nb_classes'])
+                var = torch.take_along_dim(var_prob, idx, dim=3)[..., 0]
+            else:
+                pred, prob = model.inference(x)
             if param['predict_spot']:
                 pred_tensor[t:t + pred.shape[0]] = pred[:, -1, 0]
                 true_tensor[t:t + y.shape[0]]    = y[:, -1, 0]
+                if param['vdp']:
+                    var_tensor[t:t + pred.shape[0]] = var[:, -1, 0]
             else:
                 pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
                                                                           param['nb_lon'],
@@ -36,9 +47,16 @@ def test(param, device, testloader, model):
                 true_tensor[t:t+y.shape[0], ...]    = y[:, -1, :].view(y.shape[0],
                                                                        param['nb_lon'],
                                                                        param['nb_lat'])
+                if param['vdp']:
+                    var_tensor[t:t+pred.shape[0], ...]  = var[:, -1, :].view(pred.shape[0],
+                                                                             param['nb_lon'],
+                                                                             param['nb_lat'])
 
             t        += pred.shape[0]
-            loss      = oce(prob, y, param)
+            if param['vdp']:
+                loss = loss_vdp(prob, var_prob, y, model, param)
+            else:
+                loss = oce(prob, y, param)
             test_list.append(loss.item())
             y         = y[:, 1:, :]
             rmse     += ((pred - y)**2).float().sum().item()
@@ -54,7 +72,10 @@ def test(param, device, testloader, model):
         rmse = math.sqrt(rmse/tot_num)
         print(f'Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
 
-        return pred_tensor, true_tensor
+        if param['vdp']:
+            return pred_tensor, true_tensor, var_tensor
+        else:
+            return pred_tensor, true_tensor
 
 
 def one_test_run(param):
@@ -75,13 +96,20 @@ def one_test_run(param):
 
     # Test
     print('Start testing')
-    preds, truth = test(param, device, testloader, model)
+    varis = 0
+    if param['vdp']:
+        preds, truth, varis = test(param, device, testloader, model)
+    else:
+        preds, truth = test(param, device, testloader, model)
 
     # Plot
     if param['predict_spot']:
         _ = plot_spot(preds, truth)
     else:
-        _ = plot_pred(preds, truth, param['nb_classes'])
+        if param['vdp']:
+            _ = plot_pred_vdp(preds, truth, varis, param['nb_classes'])
+        else:
+            _ = plot_pred(preds, truth, param['nb_classes'])
     plt.show()
 
 
@@ -89,7 +117,7 @@ def main():
     # Detect anomaly in autograd
     torch.autograd.set_detect_anomaly(True)
 
-    param = load_yaml('test')
+    param = load_yaml('test_ed')
     one_test_run(param)
 
 

@@ -63,6 +63,10 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     return fig, slider
 
 
+def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
+    pass
+
+
 def main():
     colors    = plt.cm.jet
     colorlist = [colors(i) for i in range(colors.N)]

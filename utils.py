@@ -6,6 +6,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
 from attention import TransformerED
+from attention_vdp import TransformerED_VDP
 
 
 def load_yaml(file_name=None):
@@ -26,8 +27,8 @@ def load_yaml(file_name=None):
 def oce(probs, target, param):
     """
     Ordinal Cross-Entropy
-    :param target: batch_size x T_out x (nb_lon x nb_lat)
     :param probs: batch_size x T_out x (nb_lon x nb_lat) x nb_classes
+    :param target: batch_size x T_out x (nb_lon x nb_lat)
     :param param:
     :return: loss
     """
@@ -60,7 +61,10 @@ def initialize(param, device, train=True):
     print(f'device: {device}')
     # Create model
     print('Initialize model')
-    model = TransformerED(param, device)
+    if param['vdp']:
+        model = TransformerED_VDP(param, device)
+    else:
+        model = TransformerED(param, device)
     nb_param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Trainable parameters: {nb_param}')
 
