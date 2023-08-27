@@ -1,4 +1,4 @@
-name       : ed7
+name       : vdp1
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -10,7 +10,7 @@ load       : False
 # nb of multi-head (n), nb of heads per multi-head (h)
 dim : [2, 2]
 # embedding dimensions
-emb : [256,]
+emb : [64,]
 # use uncertainty quantification
 vdp : True
 
@@ -47,7 +47,7 @@ spot         : [42, 17, 3]
 batch_size    : 64
 optimizer     : adam
 learning_rate : 0.001
-l2_reg        : 0.001
+l2_reg        : 0.0
 epochs        : 100
 # nb of workers for dataloaders
 workers       : 8

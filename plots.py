@@ -64,7 +64,58 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
 
 
 def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
-    pass
+    """
+    Plot the predicted congestion, the true congestion, and the variance
+    preds: nb_times x nb_lon x nb_lat
+    truth: nb_times x nb_lon x nb_lat
+    """
+    nb_times = preds.shape[0]
+    nb_lon   = preds.shape[1]
+    nb_lat   = preds.shape[2]
+
+    # Create colormap
+    colors    = plt.cm.jet
+    colorlist = [colors(i) for i in range(colors.N)]
+    colorlist[0] = (1., 1., 1., 1.)
+    cmap      = LinearSegmentedColormap.from_list('cmap', colorlist, colors.N)
+    bounds    = np.linspace(0, nb_classes, nb_classes+1)
+    norm      = BoundaryNorm(bounds, colors.N)
+
+    fig, ax = plt.subplots(1, 3, figsize=(12, 5))
+    ax[0].set_aspect('equal')
+    ax[1].set_aspect('equal')
+    ax[2].set_aspect('equal')
+    im_pred = ax[0].imshow(preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_true = ax[1].imshow(truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_var  = ax[2].imshow(varis[t_init, ...], cmap='viridis', aspect="auto")
+    ax[0].set_xlim(0, nb_lon)
+    ax[0].set_ylim(0, nb_lat)
+    ax[1].set_xlim(0, nb_lon)
+    ax[1].set_ylim(0, nb_lat)
+    ax[2].set_xlim(0, nb_lon)
+    ax[2].set_ylim(0, nb_lat)
+    ax[0].set_title("Predicted")
+    ax[1].set_title("True")
+    ax[2].set_title("Variance")
+
+    plt.subplots_adjust(bottom=0.2, right=0.2)
+    axe_bar1 = fig.add_axes([0.95, 0.1, 0.03, 0.8])
+    mpl.colorbar.ColorbarBase(axe_bar1, cmap=cmap, norm=norm,
+                              spacing='proportional', ticks=bounds, boundaries=bounds, format='%1i')
+    ax_bar2  = fig.add_axes([0.95, 0.1, 0.03, 0.8])
+    fig.colorbar(im_var, cax=ax_bar2)
+    axe_slider = fig.add_axes([0.1, 0.01, 0.8, 0.05])
+    slider     = Slider(axe_slider, 'slider', 0, nb_times - 1, valinit=t_init, valstep=1)
+
+    def update_eval(val):
+        time = int(slider.val)
+        im_pred.set_data(preds[time, ...])
+        im_true.set_data(truth[time, ...])
+        im_var.set_data(varis[time, ...])
+        plt.draw()
+
+    slider.on_changed(update_eval)
+    return fig, slider
 
 
 def main():

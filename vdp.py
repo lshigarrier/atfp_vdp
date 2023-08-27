@@ -78,7 +78,7 @@ class LinearVDP(nn.Module):
         sig2 = self.sigma**2
         if self.bias:
             mean = torch.matmul(self.weights, mu) + self.b
-            var = torch.matmul(sig2  + self.weights ** 2, sigma) + torch.matmul(sig2, mu ** 2) + self.b_var
+            var  = torch.matmul(sig2  + self.weights**2, sigma) + torch.matmul(sig2, mu**2) + self.b_var
         else:
             mean = torch.matmul(self.weights, mu)
             var  = torch.matmul(sig2  + self.weights**2, sigma) + torch.matmul(sig2, mu**2)
