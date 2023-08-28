@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from attention import get_positional_encoding
-from vdp import linear_vdp, relu_vdp, sigmoid_vdp, softmax_vdp, LinearVDP, LayerNormVDP
+from vdp import quadratic_vdp, relu_vdp, sigmoid_vdp, softmax_vdp, LinearVDP, LayerNormVDP
 
 
 class AttentionHeadVDP(nn.Module):
@@ -32,14 +32,14 @@ class AttentionHeadVDP(nn.Module):
         v, var_v = self.value(x, var_x)  # b x l x h.s
         v = v.reshape(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
         var_v = var_v.reshape(var_v.shape[0], var_v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
-        a, var_a = linear_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))  # b x h x l x l
+        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))  # b x h x l x l
         a, var_a = a/self.rd, var_a/self.rd**2
         if masking:
             mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
             mask = mask.masked_fill(mask==1, float('-inf'))
             a    = a + mask
         a, var_a = softmax_vdp(a, var_a)  # b x h x l x l
-        a, var_a = linear_vdp(a, var_a, v, var_v)
+        a, var_a = quadratic_vdp(a, var_a, v, var_v)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)  # b x l x h x s
         # return x + a.reshape(a.shape[0], a.shape[1], -1), var_x + var_a.reshape(var_a.shape[0], var_a.shape[1], -1)  # b x l x h.s
         return x + a.reshape(a.shape[0], a.shape[1], -1), var_a.reshape(var_a.shape[0], var_a.shape[1], -1)  # b x l x h.s
@@ -84,13 +84,13 @@ class DecoderHeadVDP(nn.Module):
         q, var_q = self.query(x, var_x)
         q = q.reshape(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)
         var_q = var_q.reshape(var_q.shape[0], var_q.shape[1], self.h, -1).transpose(1, 2)
-        a, var_a = linear_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))
+        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))
         a, var_a = a/self.rd, var_a/self.rd**2
         mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
         mask = mask.masked_fill(mask == 1, float('-inf'))
         a = a + mask
         a, var_a = softmax_vdp(a, var_a)
-        a, var_a = linear_vdp(a, var_a, v, var_v)
+        a, var_a = quadratic_vdp(a, var_a, v, var_v)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)
         # return x + a.reshape(a.shape[0], a.shape[1], -1), var_x + var_a.reshape(var_a.shape[0], var_a.shape[1], -1)
         return x + a.reshape(a.shape[0], a.shape[1], -1), var_a.reshape(var_a.shape[0], var_a.shape[1], -1)

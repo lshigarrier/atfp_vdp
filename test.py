@@ -31,8 +31,8 @@ def test(param, device, testloader, model):
             x, y  = x.to(device), y.to(device)
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
-                idx = pred.unsqueeze(3).expand(*pred.shape, param['nb_classes'])
-                var = torch.take_along_dim(var_prob, idx, dim=3)[..., 0]
+                indexes = pred.unsqueeze(3).expand(*pred.shape, param['nb_classes']).long()
+                var     = torch.take_along_dim(var_prob, indexes, dim=3)[..., 0]
             else:
                 pred, prob = model.inference(x)
             if param['predict_spot']:

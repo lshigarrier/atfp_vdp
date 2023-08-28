@@ -1,0 +1,62 @@
+name: vdp1
+model: weights.pt
+seed: 0
+gpu_number: 1
+load: False
+dim: [2, 2]
+emb: [64]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 100
+workers: 8
+clip: 10
+stop: 1.1
+tol: 1e-06
+device: cuda
+Initialize model
+Trainable parameters: 1381388
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Testset length: 142
+Max nb of a/c: 785
+Start training
+Epoch 1: 0/1288 0%, Loss: 1984450688.0000
+Epoch 1: 320/1288 24%, Loss: 586407957.8182
+Epoch 1: 640/1288 49%, Loss: 276523965.6429
+Epoch 1: 960/1288 73%, Loss: 147328290.2742
+Epoch 1: 1256/1288 98%, Loss: 80514994.4024
+Epoch: 1, Train Loss: 80514994.402439, Test Loss: -109601199.200000, Accuracy: 84.32%, RMSE: 1.0790
+Epoch training time (s): 361.74617099761963
+Epoch 2: 0/1288 0%, Loss: -141273664.0000
+Epoch 2: 320/1288 24%, Loss: -143693255.2727
+Epoch 2: 640/1288 49%, Loss: -144695059.8095
+Epoch 2: 960/1288 73%, Loss: -145624611.6129
+Epoch 2: 1256/1288 98%, Loss: -143482956.0000
+Epoch: 2, Train Loss: -143482956.000000, Test Loss: -90327989.600000, Accuracy: 84.40%, RMSE: 1.0684
+Epoch training time (s): 344.86552834510803
+Early stopping
+Best epoch: 1
+Best loss: -109601199.200000
+Training time (s): 706.6752722263336

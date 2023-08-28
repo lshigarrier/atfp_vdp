@@ -32,7 +32,7 @@ def loss_vdp(probs, var_prob, target, model, param):
     return nll + kl
 
 
-def linear_vdp(x, var_x, y, var_y):
+def quadratic_vdp(x, var_x, y, var_y):
     return torch.matmul(x, y), torch.matmul(var_x + x**2, var_y) + torch.matmul(var_x, y**2)
 
 
