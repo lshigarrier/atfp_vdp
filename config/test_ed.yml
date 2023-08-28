@@ -44,7 +44,7 @@ spot         : [42, 17, 3]
 
 # training
 
-batch_size    : 32
+batch_size    : 16
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0

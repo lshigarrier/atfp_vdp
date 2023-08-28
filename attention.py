@@ -40,11 +40,11 @@ class AttentionHead(nn.Module):
 
     def forward(self, x, masking=False):
         q = self.query(x)  # b x l x h.s where s = d//h
-        q = q.view(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
+        q = q.reshape(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
         k = self.key(x)  # b x l x h.s
-        k = k.view(k.shape[0], k.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
+        k = k.reshape(k.shape[0], k.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
         v = self.value(x)  # b x l x h.s
-        v = v.view(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
+        v = v.reshape(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
         a = torch.matmul(q, k.transpose(2, 3))/self.rd  # b x h x l x l
         if masking:
             mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
@@ -69,9 +69,9 @@ class FinalHead(nn.Module):
 
     def forward(self, x):
         k = self.key(x)
-        k = k.view(k.shape[0], k.shape[1], self.h, -1).transpose(1, 2)
+        k = k.reshape(k.shape[0], k.shape[1], self.h, -1).transpose(1, 2)
         v = self.value(x)
-        v = v.view(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)
+        v = v.reshape(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)
         return k, v
 
 
@@ -90,7 +90,7 @@ class DecoderHead(nn.Module):
 
     def forward(self, x, k, v):
         q = self.query(x)
-        q = q.view(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)
+        q = q.reshape(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)
         a = torch.matmul(q, k.transpose(2, 3))/self.rd
         mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
         mask = mask.masked_fill(mask == 1, float('-inf'))
