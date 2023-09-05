@@ -1,0 +1,247 @@
+name: vdp2
+model: weights.pt
+seed: 0
+gpu_number: 1
+load: False
+dim: [2, 2]
+emb: [64]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 100
+workers: 8
+clip: 10
+stop: 1000000000
+tol: 1e-06
+device: cuda
+Initialize model
+Trainable parameters: 1381388
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Testset length: 142
+Max nb of a/c: 785
+Start training
+Epoch 1: 0/1288 0%, Loss: 1984450688.0000
+Epoch 1: 320/1288 24%, Loss: 586407957.8182
+Epoch 1: 640/1288 49%, Loss: 276523965.6429
+Epoch 1: 960/1288 73%, Loss: 147328290.2742
+Epoch 1: 1256/1288 98%, Loss: 80514994.4024
+Epoch: 1, Train Loss: 80514994.402439, Test Loss: -109601199.200000, Accuracy: 84.32%, RMSE: 1.0790
+Epoch training time (s): 343.31013536453247
+Epoch 2: 0/1288 0%, Loss: -141273664.0000
+Epoch 2: 320/1288 24%, Loss: -143693255.2727
+Epoch 2: 640/1288 49%, Loss: -144695059.8095
+Epoch 2: 960/1288 73%, Loss: -145624611.6129
+Epoch 2: 1256/1288 98%, Loss: -143482956.0000
+Epoch: 2, Train Loss: -143482956.000000, Test Loss: -90327989.600000, Accuracy: 84.40%, RMSE: 1.0684
+Epoch training time (s): 340.137122631073
+Epoch 3: 0/1288 0%, Loss: -148158704.0000
+Epoch 3: 320/1288 24%, Loss: -149906660.3636
+Epoch 3: 640/1288 49%, Loss: -149770448.7619
+Epoch 3: 960/1288 73%, Loss: -149622491.3548
+Epoch 3: 1256/1288 98%, Loss: -147099873.1707
+Epoch: 3, Train Loss: -147099873.170732, Test Loss: -38099805.200000, Accuracy: 84.31%, RMSE: 1.0802
+Epoch training time (s): 338.84731340408325
+Epoch 4: 0/1288 0%, Loss: -150340560.0000
+Epoch 4: 320/1288 24%, Loss: -150403181.0909
+Epoch 4: 640/1288 49%, Loss: -151094777.1429
+Epoch 4: 960/1288 73%, Loss: -151120606.4516
+Epoch 4: 1256/1288 98%, Loss: -148409481.9512
+Epoch: 4, Train Loss: -148409481.951219, Test Loss: -61560291.600000, Accuracy: 84.40%, RMSE: 1.0698
+Epoch training time (s): 343.63425397872925
+Epoch 5: 0/1288 0%, Loss: -151945888.0000
+Epoch 5: 320/1288 24%, Loss: -151922910.5455
+Epoch 5: 640/1288 49%, Loss: -151878949.3333
+Epoch 5: 960/1288 73%, Loss: -151903290.3226
+Epoch 5: 1256/1288 98%, Loss: -149127842.8293
+Epoch: 5, Train Loss: -149127842.829268, Test Loss: -35113155.800000, Accuracy: 84.36%, RMSE: 1.0742
+Epoch training time (s): 339.54944348335266
+Epoch 6: 0/1288 0%, Loss: -150944688.0000
+Epoch 6: 320/1288 24%, Loss: -152197051.6364
+Epoch 6: 640/1288 49%, Loss: -152845983.2381
+Epoch 6: 960/1288 73%, Loss: -152656118.7097
+Epoch 6: 1256/1288 98%, Loss: -149818583.8049
+Epoch: 6, Train Loss: -149818583.804878, Test Loss: -53865626.800000, Accuracy: 84.34%, RMSE: 1.0747
+Epoch training time (s): 325.06125473976135
+Epoch 7: 0/1288 0%, Loss: -151708688.0000
+Epoch 7: 320/1288 24%, Loss: -152906049.4545
+Epoch 7: 640/1288 49%, Loss: -152977536.0000
+Epoch 7: 960/1288 73%, Loss: -153202810.3226
+Epoch 7: 1256/1288 98%, Loss: -150385789.1707
+Epoch: 7, Train Loss: -150385789.170732, Test Loss: -61242200.400000, Accuracy: 84.29%, RMSE: 1.0789
+Epoch training time (s): 360.3095021247864
+Epoch 8: 0/1288 0%, Loss: -150795344.0000
+Epoch 8: 320/1288 24%, Loss: -153867079.2727
+Epoch 8: 640/1288 49%, Loss: -153315984.0000
+Epoch 8: 960/1288 73%, Loss: -153905993.2903
+Epoch 8: 1256/1288 98%, Loss: -150968979.9024
+Epoch: 8, Train Loss: -150968979.902439, Test Loss: -56044824.800000, Accuracy: 84.33%, RMSE: 1.0753
+Epoch training time (s): 366.28007984161377
+Epoch 9: 0/1288 0%, Loss: -155380432.0000
+Epoch 9: 320/1288 24%, Loss: -153755745.4545
+Epoch 9: 640/1288 49%, Loss: -153695577.9048
+Epoch 9: 960/1288 73%, Loss: -154556749.9355
+Epoch 9: 1256/1288 98%, Loss: -151629013.3659
+Epoch: 9, Train Loss: -151629013.365854, Test Loss: -72535443.200000, Accuracy: 84.29%, RMSE: 1.0776
+Epoch training time (s): 343.78711676597595
+Epoch 10: 0/1288 0%, Loss: -157723360.0000
+Epoch 10: 320/1288 24%, Loss: -154438528.0000
+Epoch 10: 640/1288 49%, Loss: -154536428.9524
+Epoch 10: 960/1288 73%, Loss: -154972075.3548
+Epoch 10: 1256/1288 98%, Loss: -152251384.3902
+Epoch: 10, Train Loss: -152251384.390244, Test Loss: -56317579.200000, Accuracy: 84.29%, RMSE: 1.0770
+Epoch training time (s): 343.50817131996155
+Epoch 11: 0/1288 0%, Loss: -155698624.0000
+Epoch 11: 320/1288 24%, Loss: -155927914.1818
+Epoch 11: 640/1288 49%, Loss: -156021824.0000
+Epoch 11: 960/1288 73%, Loss: -155740161.5484
+Epoch 11: 1256/1288 98%, Loss: -152846043.9024
+Epoch: 11, Train Loss: -152846043.902439, Test Loss: -67181811.200000, Accuracy: 84.31%, RMSE: 1.0731
+Epoch training time (s): 353.22792506217957
+Epoch 12: 0/1288 0%, Loss: -157205552.0000
+Epoch 12: 320/1288 24%, Loss: -156191408.0000
+Epoch 12: 640/1288 49%, Loss: -156151361.5238
+Epoch 12: 960/1288 73%, Loss: -156475248.0000
+Epoch 12: 1256/1288 98%, Loss: -153458861.0732
+Epoch: 12, Train Loss: -153458861.073171, Test Loss: -53982875.200000, Accuracy: 84.31%, RMSE: 1.0728
+Epoch training time (s): 387.6214337348938
+Epoch 13: 0/1288 0%, Loss: -157816080.0000
+Epoch 13: 320/1288 24%, Loss: -157283246.5455
+Epoch 13: 640/1288 49%, Loss: -156718754.2857
+Epoch 13: 960/1288 73%, Loss: -156779800.2581
+Epoch 13: 1256/1288 98%, Loss: -153982793.9512
+Epoch: 13, Train Loss: -153982793.951219, Test Loss: inf, Accuracy: 84.29%, RMSE: 1.0742
+Epoch training time (s): 343.4796962738037
+Epoch 14: 0/1288 0%, Loss: -159337376.0000
+Epoch 14: 320/1288 24%, Loss: -156722132.3636
+Epoch 14: 640/1288 49%, Loss: -157044346.6667
+Epoch 14: 960/1288 73%, Loss: -157064754.0645
+Epoch 14: 1256/1288 98%, Loss: -154418381.2683
+Epoch: 14, Train Loss: -154418381.268293, Test Loss: 45796012.800000, Accuracy: 84.29%, RMSE: 1.0748
+Epoch training time (s): 331.2612884044647
+Epoch 15: 0/1288 0%, Loss: -160034752.0000
+Epoch 15: 320/1288 24%, Loss: -157931531.6364
+Epoch 15: 640/1288 49%, Loss: -157826359.6190
+Epoch 15: 960/1288 73%, Loss: -157655849.2903
+Epoch 15: 1256/1288 98%, Loss: -154826019.2195
+Epoch: 15, Train Loss: -154826019.219512, Test Loss: 100868370.850000, Accuracy: 84.27%, RMSE: 1.0752
+Epoch training time (s): 342.3986871242523
+Epoch 16: 0/1288 0%, Loss: -156136832.0000
+Epoch 16: 320/1288 24%, Loss: -157964237.0909
+Epoch 16: 640/1288 49%, Loss: -157787136.7619
+Epoch 16: 960/1288 73%, Loss: -158077748.1290
+Epoch 16: 1256/1288 98%, Loss: -155154316.8780
+Epoch: 16, Train Loss: -155154316.878049, Test Loss: 1357045.600000, Accuracy: 84.24%, RMSE: 1.0755
+Epoch training time (s): 330.8218264579773
+Epoch 17: 0/1288 0%, Loss: -158923952.0000
+Epoch 17: 320/1288 24%, Loss: -158978368.0000
+Epoch 17: 640/1288 49%, Loss: -158480847.2381
+Epoch 17: 960/1288 73%, Loss: -158554581.1613
+Epoch 17: 1256/1288 98%, Loss: -155399672.3902
+Epoch: 17, Train Loss: -155399672.390244, Test Loss: 65461848.200000, Accuracy: 84.25%, RMSE: 1.0741
+Epoch training time (s): 330.60917496681213
+Epoch 18: 0/1288 0%, Loss: -159872832.0000
+Epoch 18: 320/1288 24%, Loss: -158860244.3636
+Epoch 18: 640/1288 49%, Loss: -158600072.3810
+Epoch 18: 960/1288 73%, Loss: -158584595.0968
+Epoch 18: 1256/1288 98%, Loss: -155642057.4634
+Epoch: 18, Train Loss: -155642057.463415, Test Loss: 281765890.400000, Accuracy: 84.23%, RMSE: 1.0777
+Epoch training time (s): 342.0440456867218
+Epoch 19: 0/1288 0%, Loss: -159574592.0000
+Epoch 19: 320/1288 24%, Loss: -158990910.5455
+Epoch 19: 640/1288 49%, Loss: -159005916.9524
+Epoch 19: 960/1288 73%, Loss: -158899701.6774
+Epoch 19: 1256/1288 98%, Loss: -155899008.0000
+Epoch: 19, Train Loss: -155899008.000000, Test Loss: 166039047.825000, Accuracy: 84.25%, RMSE: 1.0725
+Epoch training time (s): 329.9801666736603
+Epoch 20: 0/1288 0%, Loss: -158517744.0000
+Epoch 20: 320/1288 24%, Loss: -159033735.2727
+Epoch 20: 640/1288 49%, Loss: -159045091.0476
+Epoch 20: 960/1288 73%, Loss: -159199620.6452
+Epoch 20: 1256/1288 98%, Loss: -156144113.3659
+Epoch: 20, Train Loss: -156144113.365854, Test Loss: 363944773.600000, Accuracy: 84.16%, RMSE: 1.0817
+Epoch training time (s): 360.8368351459503
+Epoch 21: 0/1288 0%, Loss: -158331936.0000
+Epoch 21: 320/1288 24%, Loss: -159201060.3636
+Epoch 21: 640/1288 49%, Loss: -158765036.9524
+Epoch 21: 960/1288 73%, Loss: -159167472.5161
+Epoch 21: 1256/1288 98%, Loss: -156317958.6341
+Epoch: 21, Train Loss: -156317958.634146, Test Loss: 430186916.000000, Accuracy: 84.15%, RMSE: 1.0813
+Epoch training time (s): 323.7233831882477
+Epoch 22: 0/1288 0%, Loss: -157294256.0000
+Epoch 22: 320/1288 24%, Loss: -158685512.7273
+Epoch 22: 640/1288 49%, Loss: -158871785.1429
+Epoch 22: 960/1288 73%, Loss: -159233765.6774
+Epoch 22: 1256/1288 98%, Loss: -156479987.8049
+Epoch: 22, Train Loss: -156479987.804878, Test Loss: 826839696.000000, Accuracy: 84.14%, RMSE: 1.0835
+Epoch training time (s): 362.9850957393646
+Epoch 23: 0/1288 0%, Loss: -161201136.0000
+Epoch 23: 320/1288 24%, Loss: -159197761.4545
+Epoch 23: 640/1288 49%, Loss: -159575856.0000
+Epoch 23: 960/1288 73%, Loss: -159533721.2903
+Epoch 23: 1256/1288 98%, Loss: -156654041.1707
+Epoch: 23, Train Loss: -156654041.170732, Test Loss: 880188281.600000, Accuracy: 84.15%, RMSE: 1.0815
+Epoch training time (s): 383.73514699935913
+Epoch 24: 0/1288 0%, Loss: -158963904.0000
+Epoch 24: 320/1288 24%, Loss: -159411378.9091
+Epoch 24: 640/1288 49%, Loss: -159529750.0952
+/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/autograd/__init__.py:173: UserWarning: Error detected in MulBackward0. Traceback of forward call that caused the error:
+  File "/home/loic/atfp_vdp/train.py", line 124, in <module>
+    main()
+  File "/home/loic/atfp_vdp/train.py", line 120, in main
+    one_run(param)
+  File "/home/loic/atfp_vdp/train.py", line 112, in one_run
+    training(param, device, trainloader, testloader, model, optimizer)
+  File "/home/loic/atfp_vdp/train.py", line 75, in training
+    test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
+  File "/home/loic/atfp_vdp/train.py", line 20, in train
+    probs, var_prob = model(x, y)
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/loic/atfp_vdp/attention_vdp.py", line 253, in forward
+    probs, var_prob    = self.decoder(y, k, var_k, v, var_v)
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/loic/atfp_vdp/attention_vdp.py", line 226, in forward
+    probs[..., -1], var_prob[..., -1] = sigmoid_vdp(p1, var_x)
+  File "/home/loic/atfp_vdp/vdp.py", line 48, in sigmoid_vdp
+    return x, var_x*der**2
+ (Triggered internally at  /opt/conda/conda-bld/pytorch_1659484806139/work/torch/csrc/autograd/python_anomaly_mode.cpp:102.)
+  Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+Traceback (most recent call last):
+  File "/home/loic/atfp_vdp/train.py", line 124, in <module>
+    main()
+  File "/home/loic/atfp_vdp/train.py", line 120, in main
+    one_run(param)
+  File "/home/loic/atfp_vdp/train.py", line 112, in one_run
+    training(param, device, trainloader, testloader, model, optimizer)
+  File "/home/loic/atfp_vdp/train.py", line 75, in training
+    test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
+  File "/home/loic/atfp_vdp/train.py", line 27, in train
+    loss.backward()
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/_tensor.py", line 396, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/autograd/__init__.py", line 173, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: Function 'MulBackward0' returned nan values in its 0th output.

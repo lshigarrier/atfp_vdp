@@ -1,0 +1,99 @@
+name: vdp4
+model: weights.pt
+seed: 0
+gpu_number: 1
+load: False
+dim: [6, 8]
+emb: [64]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 10
+workers: 8
+clip: 10
+stop: 100
+tol: 1e-06
+device: cuda
+Initialize model
+Trainable parameters: 1682444
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Testset length: 142
+Max nb of a/c: 785
+Start training
+Epoch 1: 0/1288 0%, Loss: 1029115776.0000
+Epoch 1: 320/1288 24%, Loss: 270084597.0455
+Epoch 1: 640/1288 49%, Loss: 106976490.2619
+Epoch 1: 960/1288 73%, Loss: 33117015.7258
+Epoch 1: 1256/1288 98%, Loss: -5828366.9390
+Epoch: 1, Train Loss: -5828366.939024, Test Loss: -65478192.000000, Accuracy: 84.26%, RMSE: 1.0850
+Epoch training time (s): 469.09293389320374
+Epoch 2: 0/1288 0%, Loss: -139945216.0000
+Epoch 2: 320/1288 24%, Loss: -143636766.5455
+Epoch 2: 640/1288 49%, Loss: -145190986.6667
+Epoch 2: 960/1288 73%, Loss: -146046492.9032
+Epoch 2: 1256/1288 98%, Loss: -143781135.6098
+Epoch: 2, Train Loss: -143781135.609756, Test Loss: 945412704.800000, Accuracy: 84.41%, RMSE: 1.0665
+Epoch training time (s): 432.5876874923706
+Epoch 3: 0/1288 0%, Loss: -146552480.0000
+Epoch 3: 320/1288 24%, Loss: -148573259.6364
+Epoch 3: 640/1288 49%, Loss: -149824189.7143
+Epoch 3: 960/1288 73%, Loss: -149579240.2581
+Epoch 3: 1256/1288 98%, Loss: -146835430.3415
+Epoch: 3, Train Loss: -146835430.341463, Test Loss: 712064460.800000, Accuracy: 84.63%, RMSE: 1.0390
+Epoch training time (s): 489.41469502449036
+Epoch 4: 0/1288 0%, Loss: -151513184.0000
+Epoch 4: 320/1288 24%, Loss: -150926216.7273
+Epoch 4: 640/1288 49%, Loss: -151227898.6667
+/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/autograd/__init__.py:173: UserWarning: Error detected in LogBackward0. Traceback of forward call that caused the error:
+  File "/home/loic/atfp_vdp/train.py", line 124, in <module>
+    main()
+  File "/home/loic/atfp_vdp/train.py", line 120, in main
+    one_run(param)
+  File "/home/loic/atfp_vdp/train.py", line 112, in one_run
+    training(param, device, trainloader, testloader, model, optimizer)
+  File "/home/loic/atfp_vdp/train.py", line 75, in training
+    test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
+  File "/home/loic/atfp_vdp/train.py", line 21, in train
+    loss = loss_vdp(probs, var_prob, y, model, param)
+  File "/home/loic/atfp_vdp/vdp.py", line 31, in loss_vdp
+    nll    += torch.log(var_prob.prod(dim=-1) + param['tol']).sum()
+ (Triggered internally at  /opt/conda/conda-bld/pytorch_1659484806139/work/torch/csrc/autograd/python_anomaly_mode.cpp:102.)
+  Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+Traceback (most recent call last):
+  File "/home/loic/atfp_vdp/train.py", line 124, in <module>
+    main()
+  File "/home/loic/atfp_vdp/train.py", line 120, in main
+    one_run(param)
+  File "/home/loic/atfp_vdp/train.py", line 112, in one_run
+    training(param, device, trainloader, testloader, model, optimizer)
+  File "/home/loic/atfp_vdp/train.py", line 75, in training
+    test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
+  File "/home/loic/atfp_vdp/train.py", line 27, in train
+    loss.backward()
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/_tensor.py", line 396, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/loic/anaconda3/envs/robust/lib/python3.9/site-packages/torch/autograd/__init__.py", line 173, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: Function 'LogBackward0' returned nan values in its 0th output.

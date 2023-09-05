@@ -1,4 +1,4 @@
-name       : vdp1
+name       : vdp2
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -44,7 +44,7 @@ spot         : [42, 17, 3]
 
 # training
 
-batch_size    : 16
+batch_size    : 32
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
@@ -54,7 +54,12 @@ workers       : 8
 # gradient clipping
 clip          : 10
 # test loss increase for early stopping
-stop          : 1.1
+stop          : 1
 # probability clipping to avoid log(0)
 tol           : 0.000001
+
+# plot
+
+save_plot : True
+fig_file  : outputs/images/pickle/vdp2/
 

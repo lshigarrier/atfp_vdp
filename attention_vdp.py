@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from attention import get_positional_encoding
-from vdp import quadratic_vdp, relu_vdp, sigmoid_vdp, softmax_vdp, LinearVDP, LayerNormVDP
+from vdp import quadratic_vdp, relu_vdp, sigmoid_vdp, softmax_vdp, residual_vdp, LinearVDP, LayerNormVDP
 
 
 class AttentionHeadVDP(nn.Module):
@@ -41,8 +41,8 @@ class AttentionHeadVDP(nn.Module):
         a, var_a = softmax_vdp(a, var_a)  # b x h x l x l
         a, var_a = quadratic_vdp(a, var_a, v, var_v)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)  # b x l x h x s
-        # return x + a.reshape(a.shape[0], a.shape[1], -1), var_x + var_a.reshape(var_a.shape[0], var_a.shape[1], -1)  # b x l x h.s
-        return x + a.reshape(a.shape[0], a.shape[1], -1), var_a.reshape(var_a.shape[0], var_a.shape[1], -1)  # b x l x h.s
+        return residual_vdp(x, var_x, a.reshape(a.shape[0], a.shape[1], -1),
+                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1), mode='identity') # b x l x h.s
 
 
 class FinalHeadVDP(nn.Module):
@@ -92,9 +92,8 @@ class DecoderHeadVDP(nn.Module):
         a, var_a = softmax_vdp(a, var_a)
         a, var_a = quadratic_vdp(a, var_a, v, var_v)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)
-        # return x + a.reshape(a.shape[0], a.shape[1], -1), var_x + var_a.reshape(var_a.shape[0], var_a.shape[1], -1)
-        return x + a.reshape(a.shape[0], a.shape[1], -1), var_a.reshape(var_a.shape[0], var_a.shape[1], -1)
-
+        return residual_vdp(x, var_x, a.reshape(a.shape[0], a.shape[1], -1),
+                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1), mode='identity')
 
 class EncoderVDP(nn.Module):
     def __init__(self, param, device):
@@ -143,8 +142,7 @@ class EncoderVDP(nn.Module):
             # Linear layer with skip connection
             x0, var_x0 = x[:], var_x[:]
             x, var_x = relu_vdp(*self.fc[i](x, var_x))
-            # x, var_x = x0 + x, var_x0 + var_x
-            x, var_x = x0 + x, var_x0
+            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode='identity')
         x, var_x = self.norm1[self.n-2](x, var_x)
         k, var_k, v, var_v = self.multi[self.n-1](x, var_x)
         return k, var_k, v, var_v
@@ -211,8 +209,7 @@ class DecoderVDP(nn.Module):
             # Linear layer with skip connection
             x0, var_x0 = x[:], var_x[:]
             x, var_x = relu_vdp(*self.fc[i](x, var_x))
-            # x, var_x = x0 + x, var_x0 + var_x
-            x, var_x = x0 + x, var_x0
+            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode='identity')
         x, var_x = self.fc[-1](x, var_x)
         probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
         var_prob = torch.zeros(*x.shape, self.nb_class).to(self.device)

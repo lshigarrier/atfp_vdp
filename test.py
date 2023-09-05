@@ -102,6 +102,13 @@ def one_test_run(param):
     else:
         preds, truth = test(param, device, testloader, model)
 
+    # Save
+    if param['save_plot']:
+        torch.save(preds, f'{param["fig_file"]}preds.pickle')
+        torch.save(truth, f'{param["fig_file"]}truth.pickle')
+        if param['vdp']:
+            torch.save(varis, f'{param["fig_file"]}varis.pickle')
+
     # Plot
     if param['predict_spot']:
         _ = plot_spot(preds, truth)
@@ -110,6 +117,9 @@ def one_test_run(param):
             _ = plot_pred_vdp(preds, truth, varis, param['nb_classes'])
         else:
             _ = plot_pred(preds, truth, param['nb_classes'])
+    # if param['save_plot']:
+    #     with open(f'{param["fig_file"]}.fig.pickle', 'wb') as file:
+    #         pickle.dump(fig, file)
     plt.show()
 
 

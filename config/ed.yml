@@ -1,7 +1,7 @@
-name       : vdp1
+name       : vdp5
 model      : weights.pt
 seed       : 0
-gpu_number : null
+gpu_number : "1"
 # load existing weights from ./models/[name]/[model]
 load       : False
 
@@ -10,7 +10,7 @@ load       : False
 # nb of multi-head (n), nb of heads per multi-head (h)
 dim : [2, 2]
 # embedding dimensions
-emb : [64,]
+emb : [128,]
 # use uncertainty quantification
 vdp : True
 
@@ -44,17 +44,17 @@ spot         : [42, 17, 3]
 
 # training
 
-batch_size    : 32
+batch_size    : 64
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
-epochs        : 100
+epochs        : 10
 # nb of workers for dataloaders
 workers       : 8
 # gradient clipping
 clip          : 10
 # test loss increase for early stopping
-stop          : 1.1
+stop          : 100
 # probability clipping to avoid log(0)
 tol           : 0.000001
 

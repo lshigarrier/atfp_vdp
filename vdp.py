@@ -20,16 +20,21 @@ def loss_vdp(probs, var_prob, target, model, param):
         if p.requires_grad and 'cutoff' not in name:
             if 'sigma' in name:
                 sig2 = p**2
-                kl  += sig2.sum() - torch.log(sig2 + param['tol']).sum()
+                kl  += torch.nan_to_num(sig2, nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()\
+                       - torch.nan_to_num(torch.log(sig2 + param['tol']),
+                                          nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
             else:
-                kl += torch.sum(p**2)
+                kl += torch.sum(torch.nan_to_num(p**2, nan=param['tol'], posinf=param['tol'], neginf=param['tol']))
     # Compute the expected negative log-likelihood
     probs   = probs.clamp(param['tol'], 1-param['tol'])
     target  = F.one_hot(target[:, 1:, :], num_classes=param['nb_classes'])
     inv_var = torch.div(1, var_prob)
-    nll     = torch.matmul(((target - probs)*inv_var).unsqueeze(-2), (target - probs).unsqueeze(-1)).sum()
-    nll    += torch.log(var_prob.prod(dim=-1) + param['tol']).sum()
-    return nll + kl
+    nll     = torch.nan_to_num(torch.matmul(((target - probs)*inv_var).unsqueeze(-2), (target - probs).unsqueeze(-1)),
+                               nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
+    nll    += torch.nan_to_num(torch.log(var_prob.prod(dim=-1) + param['tol']),
+                               nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
+    shapes  = probs.shape
+    return nll/(shapes[0]*shapes[1]*shapes[2]) + kl
 
 
 def quadratic_vdp(x, var_x, y, var_y):
@@ -58,6 +63,21 @@ def softmax_vdp(x, var_x):
     # jac = torch.diag_embed(prob) - torch.matmul(prob.unsqueeze(-1), prob.unsqueeze(-2))
     # var = torch.matmul(jac*var_x.unsqueeze(-2), jac.transpose(-1, -2))
     # return prob, torch.diagonal(var, dim1=-2, dim2=-1)
+
+
+def residual_vdp(x, var_x, f, var_f=None, jac=None, mode='taylor'):
+    if mode == 'taylor':
+        if (var_f is None) or (jac is None):
+            raise RuntimeError
+        return x + f, torch.maximum(var_x + var_f + 2*(jac*(var_x + x**2) - x*f), torch.tensor(0))
+    elif mode == 'independence':
+        if var_f is None:
+            raise RuntimeError
+        return x + f, var_x + var_f
+    elif mode == 'identity':
+        return x + f, var_x
+    else:
+        raise NotImplementedError
 
 
 class LinearVDP(nn.Module):

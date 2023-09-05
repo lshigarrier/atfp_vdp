@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import math
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 22})
@@ -49,6 +50,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
                 loss                 = loss_vdp(prob, var_prob, y, model, param)
+                print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten())}')
             else:
                 pred, prob = model.inference(x)
                 loss       = oce(prob, y, param)
@@ -79,7 +81,7 @@ def training(param, device, trainloader, testloader, model, optimizer):
             best_epoch = epoch
             checkpoint = model.state_dict()
             torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
-        elif test_loss > param['stop']*best_loss:
+        elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
             print(f'Best epoch: {best_epoch}')
             print(f'Best loss: {best_loss:.6f}')
