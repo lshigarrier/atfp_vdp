@@ -1,16 +1,21 @@
-name       : vdp2
+name       : vdp6
 model      : weights.pt
 seed       : 0
 gpu_number : null
 # load existing weights from ./models/[name]/[model]
 load       : True
 
+# plot
+
+save_plot : True
+fig_file  : outputs/images/pickle/vdp5/
+
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim : [2, 2]
+dim : [6, 6]
 # embedding dimensions
-emb : [64,]
+emb : [512,]
 # use uncertainty quantification
 vdp : True
 
@@ -20,9 +25,9 @@ path        : ./data/20200718_C_NEW.feather
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length
-T_in        : 160
+T_in        : 280
 # output sequence length
-T_out       : 160
+T_out       : 40
 # nb of longitude steps
 nb_lon      : 50
 # nb of latitude steps
@@ -35,6 +40,8 @@ nb_classes  : 5
 state_dim   : 6
 # max nb of simultaneous aircraft
 max_ac      : 785
+# weights for balance
+weights     : [1., 15., 15., 15., 15.]
 
 # Hot-spot congestion prediction
 
@@ -48,18 +55,14 @@ batch_size    : 32
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
+focus         : 3
 epochs        : 100
+# test loss increase for early stopping
+stop          : 1
 # nb of workers for dataloaders
 workers       : 8
 # gradient clipping
 clip          : 10
-# test loss increase for early stopping
-stop          : 1
 # probability clipping to avoid log(0)
 tol           : 0.000001
-
-# plot
-
-save_plot : True
-fig_file  : outputs/images/pickle/vdp2/
 

@@ -1,0 +1,46 @@
+name: vdp5
+model: weights.pt
+seed: 0
+gpu_number: None
+load: True
+save_plot: True
+fig_file: outputs/images/pickle/vdp5/
+dim: [2, 2]
+emb: [128]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 100
+workers: 8
+clip: 10
+stop: 1
+tol: 1e-06
+device: cpu
+Initialize model
+Trainable parameters: 3019916
+Preprocessing test set
+Building outputs
+Preprocessing done
+Start testing
+Test: 0/142 (0%)
+Test: 32/142 (20%)
+Test: 64/142 (40%)
+Test: 96/142 (60%)
+Test: 110/142 (80%)
+Test Loss: -2.393825, Accuracy: 84.25%, RMSE: 1.0867
+Statistics of predicted variances: DescribeResult(nobs=355000, minmax=(0, 0), mean=0.0, variance=0.0, skewness=nan, kurtosis=nan)
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.

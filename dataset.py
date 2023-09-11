@@ -1,7 +1,8 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 
 
 def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./data/20200718_C_NEW.feather'):
@@ -83,6 +84,8 @@ class TsagiSet(Dataset):
         self.time_starts, self.timestamps = self.get_time_slices()
         print('Building outputs')
         self.output_tensor = self.compute_output(param['nb_classes'])
+        self.output_mask   = self.compute_mask()
+        self.output_tensor = self.output_tensor.masked_fill(self.output_mask.eq(0), -1)
         print('Preprocessing done')
 
     def __len__(self):
@@ -169,6 +172,10 @@ class TsagiSet(Dataset):
                 output_tensor[t, round(row[1].item()), round(row[2].item())] = self.get_class(row[3].item(), nb_classes)
             return output_tensor.view(len(self.timestamps), -1)
 
+    def compute_mask(self):
+        output_sum  = self.output_tensor.sum(dim=0)
+        return output_sum.masked_fill(output_sum.bool(), 1)
+
     def get_hot_spots(self):
         """
         Compute the sum of complexity in each cell
@@ -182,10 +189,15 @@ class TsagiSet(Dataset):
 
 
 def dataset_balance(param, tsagi):
-    total = tsagi.output_tensor.numel()
+    total = tsagi.output_tensor.ne(-1).int().sum().item()
+    weights = []
     for i in range(param['nb_classes']):
         count = torch.eq(tsagi.output_tensor, i).float().sum().item()
         print(f'Class {i}: {int(count)} ; {100.*count/total:.2f}%')
+        weights.append(total/count)
+    min_w = min(weights)
+    for i in range(param['nb_classes']):
+        print(f'Weight {i}: {weights[i]/min_w:.2f}')
 
 
 def dataset_iterate(loader):
@@ -202,10 +214,14 @@ def dataset_iterate(loader):
 def main():
     from utils import load_yaml
     param = load_yaml()
+    for key in param:
+        print(f'{key}: {param[key]}')
     trainset = TsagiSet(param, train=True)
     testset  = TsagiSet(param, train=False)
+    testset.output_mask = trainset.output_mask[:]
     print(f'Mins\n{trainset.mins}\nMaxs\n{trainset.maxs}')
     print(f'Max nb of a/c: {trainset.max_ac}')
+    print(f'Nb of rows: {trainset.data.shape[0]}')
     print(f'Nb of timestamps: {len(trainset.times)}')
     print(f'Nb of sequences: {trainset.total_seq}')
     print(f'Trainset length: {len(trainset)}')
@@ -218,6 +234,9 @@ def main():
     trainset.get_hot_spots()
     # loader = DataLoader(testset, batch_size=param['batch_size'], shuffle=True, pin_memory=True, num_workers=1)
     # dataset_iterate(loader)
+    from plots import plot_one_img
+    _ = plot_one_img(trainset.output_mask.view(param['nb_lon'], param['nb_lat']))
+    plt.show()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,208 @@
+name: vdp5
+model: weights.pt
+seed: 0
+gpu_number: None
+load: True
+save_plot: True
+fig_file: outputs/images/pickle/vdp5/
+dim: [2, 2]
+emb: [128]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 100
+workers: 8
+clip: 10
+stop: 1
+tol: 1e-06
+device: cpu
+Initialize model
+Trainable parameters: 3019916
+Preprocessing test set
+Building outputs
+Preprocessing done
+Start testing
+Statistics at time 0: DescribeResult(nobs=80000, minmax=(0.46890226, 0.5350306), mean=0.50278497, variance=9.147228518987941e-05, skewness=-0.018723473365281598, kurtosis=0.06303557951908445)
+Statistics at time 1: DescribeResult(nobs=80000, minmax=(0.15056625, 0.1890105), mean=0.16916755, variance=2.683526401693622e-05, skewness=-0.1092833739589553, kurtosis=0.10978062004472999)
+Statistics at time 2: DescribeResult(nobs=80000, minmax=(0.15069269, 0.18899715), mean=0.16927312, variance=2.6701650299116687e-05, skewness=-0.10755175680996377, kurtosis=0.1103491443203386)
+Statistics at time 3: DescribeResult(nobs=80000, minmax=(0.1508301, 0.18892907), mean=0.16933557, variance=2.649019923276317e-05, skewness=-0.10549721305240008, kurtosis=0.10886161230677027)
+Statistics at time 4: DescribeResult(nobs=80000, minmax=(0.15101111, 0.18902369), mean=0.1694587, variance=2.6380380012762646e-05, skewness=-0.10454814361378659, kurtosis=0.10735433096573921)
+Statistics at time 5: DescribeResult(nobs=80000, minmax=(0.15114449, 0.18920451), mean=0.16956165, variance=2.6355601429375253e-05, skewness=-0.10512255614535575, kurtosis=0.10777412129608877)
+Statistics at time 6: DescribeResult(nobs=80000, minmax=(0.15116458, 0.189246), mean=0.16953173, variance=2.6305489463897398e-05, skewness=-0.10607002713624526, kurtosis=0.1095737714570495)
+Statistics at time 7: DescribeResult(nobs=80000, minmax=(0.15107727, 0.18902175), mean=0.16934937, variance=2.615347098123323e-05, skewness=-0.10638074225693435, kurtosis=0.11163926206153496)
+Statistics at time 8: DescribeResult(nobs=80000, minmax=(0.15096205, 0.18863867), mean=0.16912517, variance=2.5947797097440157e-05, skewness=-0.10546266457442528, kurtosis=0.11248418282509176)
+Statistics at time 9: DescribeResult(nobs=80000, minmax=(0.15092184, 0.18831715), mean=0.1689988, variance=2.578923380909196e-05, skewness=-0.10292676131695208, kurtosis=0.10987769143128867)
+Statistics at time 10: DescribeResult(nobs=80000, minmax=(0.15099366, 0.18823269), mean=0.16902767, variance=2.5730641609011843e-05, skewness=-0.09986520913852619, kurtosis=0.10440656491454403)
+Statistics at time 11: DescribeResult(nobs=80000, minmax=(0.15113291, 0.18840267), mean=0.16917412, variance=2.576682903654883e-05, skewness=-0.09818100864455803, kurtosis=0.09964007220355153)
+Statistics at time 12: DescribeResult(nobs=80000, minmax=(0.15125792, 0.18868047), mean=0.1693509, variance=2.5847494948962378e-05, skewness=-0.09912331053199375, kurtosis=0.09845143373351517)
+Statistics at time 13: DescribeResult(nobs=80000, minmax=(0.15129656, 0.18891147), mean=0.16947974, variance=2.590724767878858e-05, skewness=-0.10282529566145997, kurtosis=0.1013743220628851)
+Statistics at time 14: DescribeResult(nobs=80000, minmax=(0.15126036, 0.18903717), mean=0.16954021, variance=2.5926953037314172e-05, skewness=-0.10762852617387837, kurtosis=0.10635006633766331)
+Statistics at time 15: DescribeResult(nobs=80000, minmax=(0.15124232, 0.18906464), mean=0.16956697, variance=2.593300489070794e-05, skewness=-0.11050089309235964, kurtosis=0.10960376529588212)
+Statistics at time 16: DescribeResult(nobs=80000, minmax=(0.15128428, 0.18907031), mean=0.16959536, variance=2.594451923756172e-05, skewness=-0.11044199843343681, kurtosis=0.10905842705961977)
+Statistics at time 17: DescribeResult(nobs=80000, minmax=(0.15133779, 0.18913183), mean=0.16962008, variance=2.594270022542052e-05, skewness=-0.10908209825582939, kurtosis=0.10612156911486581)
+Statistics at time 18: DescribeResult(nobs=80000, minmax=(0.15135837, 0.18919423), mean=0.16960387, variance=2.5900300871421347e-05, skewness=-0.10774676863226999, kurtosis=0.10309348409512298)
+Statistics at time 19: DescribeResult(nobs=80000, minmax=(0.15133649, 0.18914187), mean=0.16952023, variance=2.581536028047598e-05, skewness=-0.10678029004318035, kurtosis=0.10203315620514886)
+Statistics at time 20: DescribeResult(nobs=80000, minmax=(0.15127002, 0.18895854), mean=0.16938913, variance=2.570726184596103e-05, skewness=-0.10631896671970835, kurtosis=0.10367415828449955)
+Statistics at time 21: DescribeResult(nobs=80000, minmax=(0.15118374, 0.18870886), mean=0.16926724, variance=2.5609089760700596e-05, skewness=-0.10574141108932134, kurtosis=0.10615141802486772)
+Statistics at time 22: DescribeResult(nobs=80000, minmax=(0.15112047, 0.18848869), mean=0.16920285, variance=2.555990367240261e-05, skewness=-0.10440314725962503, kurtosis=0.10814291786448749)
+Statistics at time 23: DescribeResult(nobs=80000, minmax=(0.15109347, 0.18840452), mean=0.16920437, variance=2.5577555366220794e-05, skewness=-0.10311272038863699, kurtosis=0.11010440432181312)
+Statistics at time 24: DescribeResult(nobs=80000, minmax=(0.1510869, 0.18847716), mean=0.16924247, variance=2.5618799647510308e-05, skewness=-0.1028042506014894, kurtosis=0.1116978689078616)
+Statistics at time 25: DescribeResult(nobs=80000, minmax=(0.15107419, 0.18861854), mean=0.16927479, variance=2.5635741926593422e-05, skewness=-0.10342830320545968, kurtosis=0.11223750065196292)
+Statistics at time 26: DescribeResult(nobs=80000, minmax=(0.15103666, 0.18872596), mean=0.16927364, variance=2.5616360352228963e-05, skewness=-0.10435372890936567, kurtosis=0.11257509963176426)
+Statistics at time 27: DescribeResult(nobs=80000, minmax=(0.15099457, 0.1887298), mean=0.16923974, variance=2.5569966447567718e-05, skewness=-0.1044220934201323, kurtosis=0.11251997592303642)
+Statistics at time 28: DescribeResult(nobs=80000, minmax=(0.15097468, 0.18863598), mean=0.16919692, variance=2.5522683045969426e-05, skewness=-0.10293651321035896, kurtosis=0.11104200440908008)
+Statistics at time 29: DescribeResult(nobs=80000, minmax=(0.15096867, 0.1885579), mean=0.16917823, variance=2.551232922886173e-05, skewness=-0.10134990010003504, kurtosis=0.10951099549320942)
+Statistics at time 30: DescribeResult(nobs=80000, minmax=(0.15098628, 0.18860093), mean=0.1692126, variance=2.554638477416923e-05, skewness=-0.10188563015018783, kurtosis=0.10903771881801871)
+Statistics at time 31: DescribeResult(nobs=80000, minmax=(0.15108109, 0.18876879), mean=0.16931027, variance=2.559776641012164e-05, skewness=-0.10479612722528582, kurtosis=0.10801695802535605)
+Statistics at time 32: DescribeResult(nobs=80000, minmax=(0.15126503, 0.1890127), mean=0.16944794, variance=2.565324991845245e-05, skewness=-0.10843606374026105, kurtosis=0.1057112455407041)
+Statistics at time 33: DescribeResult(nobs=80000, minmax=(0.15147606, 0.18922815), mean=0.16956575, variance=2.5706528784068128e-05, skewness=-0.110801403799881, kurtosis=0.10307328840307406)
+Statistics at time 34: DescribeResult(nobs=80000, minmax=(0.15155694, 0.18925036), mean=0.16958833, variance=2.5715800288951814e-05, skewness=-0.11062151209450707, kurtosis=0.10019447458931197)
+Statistics at time 35: DescribeResult(nobs=80000, minmax=(0.1515054, 0.18901183), mean=0.16946687, variance=2.5648264006173428e-05, skewness=-0.10815805854535951, kurtosis=0.09779627303832683)
+Statistics at time 36: DescribeResult(nobs=80000, minmax=(0.15134509, 0.1886147), mean=0.1692209, variance=2.5522408375136107e-05, skewness=-0.10462177724852097, kurtosis=0.09716472840330637)
+Statistics at time 37: DescribeResult(nobs=80000, minmax=(0.15111907, 0.18822339), mean=0.16894619, variance=2.538238991556742e-05, skewness=-0.10139332805678881, kurtosis=0.09684427333497014)
+Statistics at time 38: DescribeResult(nobs=80000, minmax=(0.15094069, 0.18799624), mean=0.16876677, variance=2.527311094217283e-05, skewness=-0.10013866030153912, kurtosis=0.09475199172171456)
+Statistics at time 39: DescribeResult(nobs=80000, minmax=(0.15089086, 0.18802336), mean=0.16875678, variance=2.524410133654501e-05, skewness=-0.10140328993675338, kurtosis=0.09138140650445159)
+Statistics at time 40: DescribeResult(nobs=80000, minmax=(0.15098399, 0.18824235), mean=0.1688925, variance=2.530854347967122e-05, skewness=-0.10324903813504065, kurtosis=0.08813380643200297)
+Statistics at time 41: DescribeResult(nobs=80000, minmax=(0.15115675, 0.18849504), mean=0.16906667, variance=2.541036814131118e-05, skewness=-0.10402381493442112, kurtosis=0.08633944307926411)
+Statistics at time 42: DescribeResult(nobs=80000, minmax=(0.15127812, 0.18864204), mean=0.16915499, variance=2.5469522416142924e-05, skewness=-0.10440091002025345, kurtosis=0.08817090676582984)
+Statistics at time 43: DescribeResult(nobs=80000, minmax=(0.15125768, 0.1886155), mean=0.16910331, variance=2.544391982025557e-05, skewness=-0.10542726155580098, kurtosis=0.09431755076391068)
+Statistics at time 44: DescribeResult(nobs=80000, minmax=(0.15114431, 0.18848549), mean=0.16897203, variance=2.5362509931876268e-05, skewness=-0.10701199147335255, kurtosis=0.10202133881775177)
+Statistics at time 45: DescribeResult(nobs=80000, minmax=(0.15107283, 0.18842608), mean=0.16888285, variance=2.5292881785135507e-05, skewness=-0.10856287660522536, kurtosis=0.10813114912540511)
+Statistics at time 46: DescribeResult(nobs=80000, minmax=(0.15099221, 0.18852334), mean=0.16891596, variance=2.529765669200615e-05, skewness=-0.10925275463418459, kurtosis=0.1111416971560013)
+Statistics at time 47: DescribeResult(nobs=80000, minmax=(0.15098312, 0.18872184), mean=0.16905403, variance=2.5381989732896354e-05, skewness=-0.10868080871577397, kurtosis=0.11123457911542278)
+Statistics at time 48: DescribeResult(nobs=80000, minmax=(0.15102856, 0.18891107), mean=0.16920069, variance=2.5488354648840745e-05, skewness=-0.10765062165566386, kurtosis=0.10977880438165677)
+Statistics at time 49: DescribeResult(nobs=80000, minmax=(0.15104997, 0.18895346), mean=0.16925192, variance=2.553693682510785e-05, skewness=-0.10698950090232517, kurtosis=0.10814275133874096)
+Statistics at time 50: DescribeResult(nobs=80000, minmax=(0.15103336, 0.18876684), mean=0.16917938, variance=2.5494124555352625e-05, skewness=-0.10671371264398577, kurtosis=0.10706182215047999)
+Statistics at time 51: DescribeResult(nobs=80000, minmax=(0.1509925, 0.18846296), mean=0.16905047, variance=2.5401722376604067e-05, skewness=-0.10694635506094614, kurtosis=0.10659197153654487)
+Statistics at time 52: DescribeResult(nobs=80000, minmax=(0.1508447, 0.18822774), mean=0.16895604, variance=2.53257404204541e-05, skewness=-0.10736561873717507, kurtosis=0.10557676722088605)
+Statistics at time 53: DescribeResult(nobs=80000, minmax=(0.15083505, 0.18812725), mean=0.16892926, variance=2.530756121311497e-05, skewness=-0.10671592808315077, kurtosis=0.1033830988760811)
+Statistics at time 54: DescribeResult(nobs=80000, minmax=(0.15091246, 0.18812394), mean=0.16893117, variance=2.5344625404504016e-05, skewness=-0.10510593524374667, kurtosis=0.10233969270027421)
+Statistics at time 55: DescribeResult(nobs=80000, minmax=(0.15080808, 0.18813458), mean=0.1688969, variance=2.5376660027322645e-05, skewness=-0.10443593863839212, kurtosis=0.10497779135883212)
+Statistics at time 56: DescribeResult(nobs=80000, minmax=(0.15061344, 0.18807806), mean=0.16880666, variance=2.5345960559415654e-05, skewness=-0.10604389288890809, kurtosis=0.11092296040767113)
+Statistics at time 57: DescribeResult(nobs=80000, minmax=(0.15041871, 0.18798739), mean=0.16871879, variance=2.5280650747498095e-05, skewness=-0.10954146088591664, kurtosis=0.11827882655251187)
+Statistics at time 58: DescribeResult(nobs=80000, minmax=(0.15033819, 0.18798415), mean=0.16871819, variance=2.5257662072057638e-05, skewness=-0.11326149612370359, kurtosis=0.1244979173830143)
+Statistics at time 59: DescribeResult(nobs=80000, minmax=(0.1504105, 0.18812989), mean=0.16883725, variance=2.5308141477988015e-05, skewness=-0.11517200522328436, kurtosis=0.12686123749596145)
+Statistics at time 60: DescribeResult(nobs=80000, minmax=(0.15055807, 0.18839581), mean=0.16902612, variance=2.5417484116807542e-05, skewness=-0.11453197636055651, kurtosis=0.12552174384461612)
+Statistics at time 61: DescribeResult(nobs=80000, minmax=(0.1506514, 0.18867236), mean=0.16917717, variance=2.5533529815367388e-05, skewness=-0.1123911964262793, kurtosis=0.1235473866766914)
+Statistics at time 62: DescribeResult(nobs=80000, minmax=(0.15062462, 0.18878171), mean=0.16919298, variance=2.5569660853527997e-05, skewness=-0.10996230172059433, kurtosis=0.12238919324322639)
+Statistics at time 63: DescribeResult(nobs=80000, minmax=(0.1505093, 0.18865292), mean=0.16907464, variance=2.5492974939679385e-05, skewness=-0.10827573426501409, kurtosis=0.12138650554472141)
+Statistics at time 64: DescribeResult(nobs=80000, minmax=(0.15038644, 0.18843459), mean=0.16893137, variance=2.5380163444706592e-05, skewness=-0.10801564366025009, kurtosis=0.1205070934447372)
+Statistics at time 65: DescribeResult(nobs=80000, minmax=(0.15034047, 0.18829831), mean=0.16887006, variance=2.5323770430305183e-05, skewness=-0.10861627061143408, kurtosis=0.1192972415502136)
+Statistics at time 66: DescribeResult(nobs=80000, minmax=(0.15038577, 0.18830459), mean=0.16890132, variance=2.5346300714686057e-05, skewness=-0.10928420103177375, kurtosis=0.11737859369680681)
+Statistics at time 67: DescribeResult(nobs=80000, minmax=(0.15043214, 0.18842074), mean=0.16894136, variance=2.541973787285049e-05, skewness=-0.1098831630388262, kurtosis=0.11635306915328458)
+Statistics at time 68: DescribeResult(nobs=80000, minmax=(0.15036722, 0.18850371), mean=0.16887425, variance=2.5467970798786485e-05, skewness=-0.11032443982022817, kurtosis=0.11752215479470207)
+Statistics at time 69: DescribeResult(nobs=80000, minmax=(0.15017006, 0.1883795), mean=0.1686473, variance=2.539899567740441e-05, skewness=-0.11038419102775797, kurtosis=0.1197037765292639)
+Statistics at time 70: DescribeResult(nobs=80000, minmax=(0.14993668, 0.18805495), mean=0.16834322, variance=2.5212415964057488e-05, skewness=-0.11010628095783084, kurtosis=0.12119353068313066)
+Statistics at time 71: DescribeResult(nobs=80000, minmax=(0.14980166, 0.18772411), mean=0.16812398, variance=2.5029203242183924e-05, skewness=-0.10923322713943912, kurtosis=0.1206474877927568)
+Statistics at time 72: DescribeResult(nobs=80000, minmax=(0.14983001, 0.18757193), mean=0.16809551, variance=2.4960329985481758e-05, skewness=-0.10812087202933553, kurtosis=0.11763418072165477)
+Statistics at time 73: DescribeResult(nobs=80000, minmax=(0.14998464, 0.18767539), mean=0.16825473, variance=2.5028937666411308e-05, skewness=-0.10842884721140032, kurtosis=0.11398749523257434)
+Statistics at time 74: DescribeResult(nobs=80000, minmax=(0.1501783, 0.18797322), mean=0.16851927, variance=2.5199722897336213e-05, skewness=-0.11134370603128675, kurtosis=0.1121085134616635)
+Statistics at time 75: DescribeResult(nobs=80000, minmax=(0.1503275, 0.18829586), mean=0.16877401, variance=2.540859096644923e-05, skewness=-0.11586790358430307, kurtosis=0.11285879469299154)
+Statistics at time 76: DescribeResult(nobs=80000, minmax=(0.15037628, 0.18848823), mean=0.16892478, variance=2.557173452736896e-05, skewness=-0.12013450720653393, kurtosis=0.11608327493866488)
+Statistics at time 77: DescribeResult(nobs=80000, minmax=(0.1503343, 0.18848929), mean=0.16895081, variance=2.5634534102531668e-05, skewness=-0.12247498567227243, kurtosis=0.12043651402067157)
+Statistics at time 78: DescribeResult(nobs=80000, minmax=(0.15027599, 0.1883464), mean=0.1689097, variance=2.5613400819475233e-05, skewness=-0.12158296387874723, kurtosis=0.12303890478032242)
+Statistics at time 79: DescribeResult(nobs=80000, minmax=(0.1502541, 0.1882146), mean=0.16887534, variance=2.5569242480735522e-05, skewness=-0.11817153688538767, kurtosis=0.12266424868146464)
+Statistics at time 80: DescribeResult(nobs=80000, minmax=(0.15026829, 0.18821563), mean=0.16887788, variance=2.5539490718154094e-05, skewness=-0.11463832039456014, kurtosis=0.12043432236380669)
+Statistics at time 81: DescribeResult(nobs=80000, minmax=(0.15029708, 0.18831477), mean=0.16889982, variance=2.5532534815726152e-05, skewness=-0.11287984103680172, kurtosis=0.1175586151792638)
+Statistics at time 82: DescribeResult(nobs=80000, minmax=(0.15029901, 0.18841685), mean=0.16890605, variance=2.5546015514704568e-05, skewness=-0.11365159154444401, kurtosis=0.11580476731689915)
+Statistics at time 83: DescribeResult(nobs=80000, minmax=(0.15024039, 0.18846484), mean=0.16887337, variance=2.5569735433025783e-05, skewness=-0.1162792947610715, kurtosis=0.1163446874590437)
+Statistics at time 84: DescribeResult(nobs=80000, minmax=(0.15014529, 0.1884171), mean=0.1688017, variance=2.558994465791449e-05, skewness=-0.11827160310622788, kurtosis=0.1176057050114987)
+Statistics at time 85: DescribeResult(nobs=80000, minmax=(0.15005824, 0.18828192), mean=0.1687085, variance=2.5598202973035526e-05, skewness=-0.11798275346170334, kurtosis=0.11802111123001291)
+Statistics at time 86: DescribeResult(nobs=80000, minmax=(0.14999093, 0.18814908), mean=0.16861875, variance=2.5587154293289893e-05, skewness=-0.1163737497902295, kurtosis=0.11791568704164224)
+Statistics at time 87: DescribeResult(nobs=80000, minmax=(0.14995405, 0.18808934), mean=0.16855867, variance=2.553888316809893e-05, skewness=-0.1150270861929214, kurtosis=0.11715859118081973)
+Statistics at time 88: DescribeResult(nobs=80000, minmax=(0.14997128, 0.18810745), mean=0.16854808, variance=2.547217271683265e-05, skewness=-0.11440372065880386, kurtosis=0.11593517908289108)
+Statistics at time 89: DescribeResult(nobs=80000, minmax=(0.15003978, 0.18818416), mean=0.16858825, variance=2.543404622235315e-05, skewness=-0.11440267381406764, kurtosis=0.11596520758051909)
+Statistics at time 90: DescribeResult(nobs=80000, minmax=(0.15012813, 0.18827082), mean=0.16865663, variance=2.5440891165040474e-05, skewness=-0.11447363460964846, kurtosis=0.11715851989381809)
+Statistics at time 91: DescribeResult(nobs=80000, minmax=(0.15019166, 0.18832208), mean=0.16871603, variance=2.5479026754580682e-05, skewness=-0.11414169606638414, kurtosis=0.11804954912743115)
+Statistics at time 92: DescribeResult(nobs=80000, minmax=(0.15019019, 0.18834424), mean=0.16873205, variance=2.5537493442823056e-05, skewness=-0.11376882414484564, kurtosis=0.11887818108671411)
+Statistics at time 93: DescribeResult(nobs=80000, minmax=(0.15012632, 0.18834305), mean=0.1686905, variance=2.5591197957279776e-05, skewness=-0.1138996409571512, kurtosis=0.11987784452360462)
+Statistics at time 94: DescribeResult(nobs=80000, minmax=(0.1500356, 0.1883048), mean=0.16860588, variance=2.5598408521407482e-05, skewness=-0.11484525832219172, kurtosis=0.11969822636936778)
+Statistics at time 95: DescribeResult(nobs=80000, minmax=(0.14993683, 0.18824673), mean=0.16850966, variance=2.5557338865283523e-05, skewness=-0.11646138581184146, kurtosis=0.11834974053079739)
+Statistics at time 96: DescribeResult(nobs=80000, minmax=(0.1498463, 0.18816265), mean=0.16842334, variance=2.5503114113354423e-05, skewness=-0.11753722634234227, kurtosis=0.11697992432984439)
+Statistics at time 97: DescribeResult(nobs=80000, minmax=(0.14978188, 0.18799733), mean=0.16834371, variance=2.5444933010018216e-05, skewness=-0.11676006363105795, kurtosis=0.1159090167923238)
+Statistics at time 98: DescribeResult(nobs=80000, minmax=(0.14971422, 0.18776298), mean=0.16826019, variance=2.5382278955826807e-05, skewness=-0.11490868564928929, kurtosis=0.11628703527089579)
+Statistics at time 99: DescribeResult(nobs=80000, minmax=(0.14961335, 0.1875449), mean=0.16818368, variance=2.532435433320251e-05, skewness=-0.11414420954668086, kurtosis=0.1191714044769232)
+Statistics at time 100: DescribeResult(nobs=80000, minmax=(0.14953119, 0.18741424), mean=0.16815181, variance=2.5286498871532044e-05, skewness=-0.11543970188828936, kurtosis=0.12276670625858)
+Statistics at time 101: DescribeResult(nobs=80000, minmax=(0.14954709, 0.18743043), mean=0.16820104, variance=2.5287241028485653e-05, skewness=-0.11831614392590224, kurtosis=0.12475618129326627)
+Statistics at time 102: DescribeResult(nobs=80000, minmax=(0.14967243, 0.18760213), mean=0.1683282, variance=2.534823250558001e-05, skewness=-0.12131602135964016, kurtosis=0.12457719012189594)
+Statistics at time 103: DescribeResult(nobs=80000, minmax=(0.14984037, 0.187814), mean=0.16847163, variance=2.5457340491833324e-05, skewness=-0.12236299001130622, kurtosis=0.12233761888625905)
+Statistics at time 104: DescribeResult(nobs=80000, minmax=(0.1499401, 0.18790267), mean=0.16853371, variance=2.5551325211144723e-05, skewness=-0.1210698589421902, kurtosis=0.11958307853249606)
+Statistics at time 105: DescribeResult(nobs=80000, minmax=(0.14988403, 0.18778397), mean=0.16844468, variance=2.5564167436861577e-05, skewness=-0.11891217140984091, kurtosis=0.11940086538801165)
+Statistics at time 106: DescribeResult(nobs=80000, minmax=(0.1496911, 0.18750037), mean=0.16823295, variance=2.548745605684299e-05, skewness=-0.11708137055098967, kurtosis=0.12225952958696151)
+Statistics at time 107: DescribeResult(nobs=80000, minmax=(0.1494764, 0.18723162), mean=0.16802694, variance=2.537888467917133e-05, skewness=-0.11656398679739313, kurtosis=0.12569221482103998)
+Statistics at time 108: DescribeResult(nobs=80000, minmax=(0.14936005, 0.1871761), mean=0.16795789, variance=2.5311821339549655e-05, skewness=-0.1181308955775676, kurtosis=0.12812415107648745)
+Statistics at time 109: DescribeResult(nobs=80000, minmax=(0.14939553, 0.18736209), mean=0.1680574, variance=2.5338247947936976e-05, skewness=-0.12053372837533045, kurtosis=0.129042678019319)
+Statistics at time 110: DescribeResult(nobs=80000, minmax=(0.14952807, 0.18766236), mean=0.16824023, variance=2.5446781126353673e-05, skewness=-0.12167094455973324, kurtosis=0.1289723969288321)
+Statistics at time 111: DescribeResult(nobs=80000, minmax=(0.14962932, 0.18790253), mean=0.1683646, variance=2.5553835447899576e-05, skewness=-0.12136433304335506, kurtosis=0.12946576434275192)
+Statistics at time 112: DescribeResult(nobs=80000, minmax=(0.14961882, 0.1879165), mean=0.16833234, variance=2.5561955518097884e-05, skewness=-0.12048246333994163, kurtosis=0.13097607322920668)
+Statistics at time 113: DescribeResult(nobs=80000, minmax=(0.14952557, 0.18768312), mean=0.16816899, variance=2.5461318671386123e-05, skewness=-0.11943793409388496, kurtosis=0.13250529119442245)
+Statistics at time 114: DescribeResult(nobs=80000, minmax=(0.149434, 0.18740422), mean=0.16800207, variance=2.5342620853124413e-05, skewness=-0.11853637940254766, kurtosis=0.13317044640380793)
+Statistics at time 115: DescribeResult(nobs=80000, minmax=(0.14942668, 0.18729375), mean=0.16795346, variance=2.530343023654231e-05, skewness=-0.11765127126154025, kurtosis=0.13186144996723614)
+Statistics at time 116: DescribeResult(nobs=80000, minmax=(0.1495331, 0.18740536), mean=0.16805664, variance=2.5386117071444733e-05, skewness=-0.11671580544816662, kurtosis=0.12837311917349048)
+Statistics at time 117: DescribeResult(nobs=80000, minmax=(0.14969651, 0.18767226), mean=0.16824584, variance=2.5564012820829577e-05, skewness=-0.11646343064646636, kurtosis=0.1247316335190356)
+Statistics at time 118: DescribeResult(nobs=80000, minmax=(0.14983256, 0.18794033), mean=0.16839999, variance=2.573421960589358e-05, skewness=-0.11736928782684569, kurtosis=0.12244705689482327)
+Statistics at time 119: DescribeResult(nobs=80000, minmax=(0.1499127, 0.18802038), mean=0.16842546, variance=2.578291637992558e-05, skewness=-0.11861966993324358, kurtosis=0.12114087945437646)
+Statistics at time 120: DescribeResult(nobs=80000, minmax=(0.14995115, 0.1878792), mean=0.16833156, variance=2.569597669463704e-05, skewness=-0.11974748132819757, kurtosis=0.12091809465708359)
+Statistics at time 121: DescribeResult(nobs=80000, minmax=(0.14987521, 0.18766491), mean=0.168209, variance=2.5562674027893656e-05, skewness=-0.12052562682889448, kurtosis=0.12067095457536103)
+Statistics at time 122: DescribeResult(nobs=80000, minmax=(0.14986311, 0.18751834), mean=0.16813135, variance=2.545925045458158e-05, skewness=-0.11975752771594948, kurtosis=0.1175838465090826)
+Statistics at time 123: DescribeResult(nobs=80000, minmax=(0.14995573, 0.18749338), mean=0.16810079, variance=2.5416823815400288e-05, skewness=-0.11709040152166218, kurtosis=0.11205071431117464)
+Statistics at time 124: DescribeResult(nobs=80000, minmax=(0.15001799, 0.18754244), mean=0.16806944, variance=2.54166564662833e-05, skewness=-0.11404970008486899, kurtosis=0.10724754408961257)
+Statistics at time 125: DescribeResult(nobs=80000, minmax=(0.14997192, 0.187543), mean=0.16799966, variance=2.5395939737007198e-05, skewness=-0.11252225735429854, kurtosis=0.1045402298705671)
+Statistics at time 126: DescribeResult(nobs=80000, minmax=(0.14984564, 0.18745191), mean=0.16791338, variance=2.533139027216466e-05, skewness=-0.11320565145895213, kurtosis=0.10383690462945827)
+Statistics at time 127: DescribeResult(nobs=80000, minmax=(0.14972092, 0.18735439), mean=0.16787636, variance=2.528341200792843e-05, skewness=-0.11500355437518107, kurtosis=0.10473987953967256)
+Statistics at time 128: DescribeResult(nobs=80000, minmax=(0.14969456, 0.18733086), mean=0.16793074, variance=2.5312716293523126e-05, skewness=-0.11589106431752662, kurtosis=0.10517788828534558)
+Statistics at time 129: DescribeResult(nobs=80000, minmax=(0.14979573, 0.18741448), mean=0.16805173, variance=2.5418852013937724e-05, skewness=-0.11544163950666123, kurtosis=0.10391677002431221)
+Statistics at time 130: DescribeResult(nobs=80000, minmax=(0.14993264, 0.1875927), mean=0.16815743, variance=2.5565904593456422e-05, skewness=-0.11467478342258944, kurtosis=0.1028912793477108)
+Statistics at time 131: DescribeResult(nobs=80000, minmax=(0.14997737, 0.18775128), mean=0.16816103, variance=2.5684727923555874e-05, skewness=-0.11421703006703099, kurtosis=0.10421393437546245)
+Statistics at time 132: DescribeResult(nobs=80000, minmax=(0.14988847, 0.18775362), mean=0.16804636, variance=2.5696487837048717e-05, skewness=-0.11416613885407165, kurtosis=0.10802631976947241)
+Statistics at time 133: DescribeResult(nobs=80000, minmax=(0.14965677, 0.187625), mean=0.16790244, variance=2.560107519320648e-05, skewness=-0.11479539656455888, kurtosis=0.11303544759003348)
+Statistics at time 134: DescribeResult(nobs=80000, minmax=(0.14953211, 0.18751012), mean=0.16785045, variance=2.5499243255517953e-05, skewness=-0.11566169970903166, kurtosis=0.11674301576067325)
+Statistics at time 135: DescribeResult(nobs=80000, minmax=(0.14959456, 0.18752381), mean=0.16793944, variance=2.5481220483222966e-05, skewness=-0.11612818809750795, kurtosis=0.11758006573848778)
+Statistics at time 136: DescribeResult(nobs=80000, minmax=(0.14979175, 0.18770437), mean=0.16812366, variance=2.5553013254411756e-05, skewness=-0.11686883072210871, kurtosis=0.1168696842392749)
+Statistics at time 137: DescribeResult(nobs=80000, minmax=(0.15001017, 0.18796466), mean=0.16829988, variance=2.5657118957276777e-05, skewness=-0.11822348817905251, kurtosis=0.1165054412860762)
+Statistics at time 138: DescribeResult(nobs=80000, minmax=(0.1501243, 0.18812557), mean=0.16836749, variance=2.571558564551915e-05, skewness=-0.11943072897447028, kurtosis=0.1167771436866798)
+Statistics at time 139: DescribeResult(nobs=80000, minmax=(0.15000965, 0.18807456), mean=0.16829617, variance=2.5672684244169006e-05, skewness=-0.11986636265002731, kurtosis=0.11746509711156206)
+Statistics at time 140: DescribeResult(nobs=80000, minmax=(0.14984037, 0.18784012), mean=0.16815223, variance=2.5554588518926032e-05, skewness=-0.11870326071178879, kurtosis=0.11762519917894032)
+Statistics at time 141: DescribeResult(nobs=80000, minmax=(0.14974694, 0.18755722), mean=0.16804224, variance=2.5452221791667995e-05, skewness=-0.11534460754353386, kurtosis=0.11610894079428968)
+Statistics at time 142: DescribeResult(nobs=80000, minmax=(0.14977664, 0.18740197), mean=0.16803169, variance=2.5439652417772318e-05, skewness=-0.11151245179281932, kurtosis=0.11381727978875045)
+Statistics at time 143: DescribeResult(nobs=80000, minmax=(0.14988099, 0.18745324), mean=0.1681153, variance=2.5515299675688306e-05, skewness=-0.1099051291628293, kurtosis=0.11221073956257488)
+Statistics at time 144: DescribeResult(nobs=80000, minmax=(0.14995602, 0.18763404), mean=0.16823663, variance=2.5641722838513682e-05, skewness=-0.11100652702729423, kurtosis=0.11128733010174097)
+Statistics at time 145: DescribeResult(nobs=80000, minmax=(0.14989819, 0.18782449), mean=0.16832581, variance=2.577624606240381e-05, skewness=-0.1132359348299249, kurtosis=0.11107301137704484)
+Statistics at time 146: DescribeResult(nobs=80000, minmax=(0.14971827, 0.18792567), mean=0.16833736, variance=2.586198519967916e-05, skewness=-0.11458209031312248, kurtosis=0.11126486444995276)
+Statistics at time 147: DescribeResult(nobs=80000, minmax=(0.14956215, 0.18785533), mean=0.1682727, variance=2.585518209427108e-05, skewness=-0.11330641245080739, kurtosis=0.1101271220795792)
+Statistics at time 148: DescribeResult(nobs=80000, minmax=(0.14954306, 0.18766461), mean=0.16817471, variance=2.5775012772172076e-05, skewness=-0.10990901582363446, kurtosis=0.10814803343295631)
+Statistics at time 149: DescribeResult(nobs=80000, minmax=(0.14966434, 0.18753403), mean=0.16809845, variance=2.5678634232882864e-05, skewness=-0.10678443301483251, kurtosis=0.10746409708289395)
+Statistics at time 150: DescribeResult(nobs=80000, minmax=(0.14986579, 0.18755926), mean=0.16808246, variance=2.5597111565750808e-05, skewness=-0.10578739964341491, kurtosis=0.10769271454856622)
+Statistics at time 151: DescribeResult(nobs=80000, minmax=(0.149909, 0.18770914), mean=0.1681339, variance=2.55537790585232e-05, skewness=-0.10750219208895292, kurtosis=0.10872539826942784)
+Statistics at time 152: DescribeResult(nobs=80000, minmax=(0.14997624, 0.18790804), mean=0.16822664, variance=2.5565604456453125e-05, skewness=-0.11116572131404123, kurtosis=0.1119871289404748)
+Statistics at time 153: DescribeResult(nobs=80000, minmax=(0.1500428, 0.18804486), mean=0.16831115, variance=2.5614364895910067e-05, skewness=-0.11402478632041085, kurtosis=0.11631521387015997)
+Statistics at time 154: DescribeResult(nobs=80000, minmax=(0.15009595, 0.18803997), mean=0.16834004, variance=2.5657968435946716e-05, skewness=-0.11380119253412793, kurtosis=0.11935596445778307)
+Statistics at time 155: DescribeResult(nobs=80000, minmax=(0.15005885, 0.18792571), mean=0.16830398, variance=2.567133817518452e-05, skewness=-0.11118006343475888, kurtosis=0.1211152830590918)
+Statistics at time 156: DescribeResult(nobs=80000, minmax=(0.15006083, 0.18779509), mean=0.16825321, variance=2.5646452270080793e-05, skewness=-0.10829058341806173, kurtosis=0.12094096482026906)
+Statistics at time 157: DescribeResult(nobs=80000, minmax=(0.15019317, 0.18775888), mean=0.16827351, variance=2.560721435918302e-05, skewness=-0.10638977408095271, kurtosis=0.117009820849038)
+Statistics at time 158: DescribeResult(nobs=80000, minmax=(0.15035315, 0.18791614), mean=0.16842662, variance=2.5632120273420297e-05, skewness=-0.10603276511492858, kurtosis=0.11065761134401342)
+Statistics at time 159: DescribeResult(nobs=80000, minmax=(0.15048157, 0.18824273), mean=0.16870768, variance=2.5781221060609985e-05, skewness=-0.10695618335090813, kurtosis=0.1048142094681559)
+Traceback (most recent call last):
+  File "/home/loic/lsg/code/atfp_vdp/test.py", line 138, in <module>
+    main()
+  File "/home/loic/lsg/code/atfp_vdp/test.py", line 134, in main
+    one_test_run(param)
+  File "/home/loic/lsg/code/atfp_vdp/test.py", line 104, in one_test_run
+    preds, truth, varis = test(param, device, testloader, model)
+  File "/home/loic/lsg/code/atfp_vdp/test.py", line 47, in test
+    pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
+RuntimeError: The expanded size of the tensor (0) must match the existing size (32) at non-singleton dimension 0.  Target sizes: [0, 50, 50].  Tensor sizes: [32, 50, 50]

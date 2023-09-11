@@ -1,0 +1,165 @@
+name: vdp5
+model: weights.pt
+seed: 0
+gpu_number: 1
+load: False
+dim: [2, 2]
+emb: [128]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 160
+T_out: 160
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 10
+workers: 8
+clip: 10
+stop: 100
+tol: 1e-06
+device: cuda
+Initialize model
+Trainable parameters: 3019916
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Testset length: 142
+Max nb of a/c: 785
+Start training
+Epoch 1: 0/1288 0%, Loss: 11833461.0000
+Epoch 1: 320/1288 24%, Loss: 10952285.8182
+Epoch 1: 640/1288 49%, Loss: 10372288.1905
+Epoch 1: 960/1288 73%, Loss: 9916527.6774
+Epoch 1: 1256/1288 98%, Loss: 9535949.3780
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.03200515, 0.23774645), mean=0.10441509, variance=0.0016371270431824343, skewness=0.1960887391077521, kurtosis=-0.8793605790345342)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.03208106, 0.23865496), mean=0.10472825, variance=0.0016472223472183618, skewness=0.19587892348302685, kurtosis=-0.8798697216838529)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.03225782, 0.2392739), mean=0.10496753, variance=0.0016550047116040917, skewness=0.19578970793050937, kurtosis=-0.8800350662538765)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.032216597, 0.23959936), mean=0.105087265, variance=0.0016592992728933899, skewness=0.1960878074716045, kurtosis=-0.8795787761293004)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.032320466, 0.23993763), mean=0.10525595, variance=0.0016648792092172975, skewness=0.19607073607273195, kurtosis=-0.8796241237103404)
+Epoch: 1, Train Loss: 9535949.378049, Test Loss: 8069485.000000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 481.9645347595215
+Epoch 2: 0/1288 0%, Loss: 8069484.5000
+Epoch 2: 320/1288 24%, Loss: 7839293.6364
+Epoch 2: 640/1288 49%, Loss: 7631616.8333
+Epoch 2: 960/1288 73%, Loss: 7442146.6935
+Epoch 2: 1256/1288 98%, Loss: 7267744.2927
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.035732634, 0.23088682), mean=0.11124274, variance=0.0020329333228123947, skewness=0.206056816546519, kurtosis=-0.9190125337494837)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.03577584, 0.23126602), mean=0.11135094, variance=0.0020370744487051276, skewness=0.20604615119186073, kurtosis=-0.919013865820093)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.035783406, 0.23151629), mean=0.111364625, variance=0.0020376041384277165, skewness=0.20611955453839556, kurtosis=-0.918859949277814)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.035787687, 0.23125878), mean=0.11136602, variance=0.00203765629249271, skewness=0.20611583357269633, kurtosis=-0.9188871867890014)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.03581508, 0.23134476), mean=0.11142842, variance=0.0020400819631599867, skewness=0.20614324874116896, kurtosis=-0.9188552494288467)
+Epoch: 2, Train Loss: 7267744.292683, Test Loss: 6566016.000000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 408.3766212463379
+Epoch 3: 0/1288 0%, Loss: 6566015.0000
+Epoch 3: 320/1288 24%, Loss: 6429860.5455
+Epoch 3: 640/1288 49%, Loss: 6302121.0238
+Epoch 3: 960/1288 73%, Loss: 6181742.8387
+Epoch 3: 1256/1288 98%, Loss: 6067870.4878
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.036363598, 0.2841677), mean=0.13219252, variance=0.00385715003564231, skewness=0.2972063784935428, kurtosis=-0.8778123082811478)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.036360294, 0.28410915), mean=0.13219069, variance=0.0038570538765849787, skewness=0.2972016071367558, kurtosis=-0.8778312067806806)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.036359064, 0.28413057), mean=0.13219887, variance=0.003857489037064767, skewness=0.2971933792350446, kurtosis=-0.8778405707100649)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.03636557, 0.2841403), mean=0.13220148, variance=0.003857624544501491, skewness=0.29718868272630977, kurtosis=-0.8778305109801621)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.03636631, 0.28413993), mean=0.13219956, variance=0.0038575366120119714, skewness=0.2971924759465627, kurtosis=-0.8778233984517931)
+Epoch: 3, Train Loss: 6067870.487805, Test Loss: 5603448.000000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 423.22695660591125
+Epoch 4: 0/1288 0%, Loss: 5603447.5000
+Epoch 4: 320/1288 24%, Loss: 5507294.8182
+Epoch 4: 640/1288 49%, Loss: 5415539.5714
+Epoch 4: 960/1288 73%, Loss: 5327781.5161
+Epoch 4: 1256/1288 98%, Loss: 5243676.1829
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.027473284, 0.36064237), mean=0.14040963, variance=0.006304112827186903, skewness=0.356663448916685, kurtosis=-0.9039083499875771)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.027473873, 0.36068475), mean=0.14042775, variance=0.00630573193150817, skewness=0.3566728487888606, kurtosis=-0.903918180817346)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.027479012, 0.36081445), mean=0.1404574, variance=0.006308392254484128, skewness=0.3566912435059029, kurtosis=-0.9038257401671363)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.027487991, 0.36081648), mean=0.14046247, variance=0.006308853259165765, skewness=0.3566903931502354, kurtosis=-0.9038218540482141)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.027490329, 0.36084417), mean=0.14046505, variance=0.006309133714011097, skewness=0.356713633056512, kurtosis=-0.9037728753273178)
+Epoch: 4, Train Loss: 5243676.182927, Test Loss: 4898374.000000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 428.2328362464905
+Epoch 5: 0/1288 0%, Loss: 4898373.0000
+Epoch 5: 320/1288 24%, Loss: 4824594.0909
+Epoch 5: 640/1288 49%, Loss: 4753544.8095
+Epoch 5: 960/1288 73%, Loss: 4685031.1129
+Epoch 5: 1256/1288 98%, Loss: 4618881.0244
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.018597335, 0.403774), mean=0.14019059, variance=0.008643203550026651, skewness=0.372142935619613, kurtosis=-0.9957243677862904)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.018598178, 0.40394646), mean=0.14023106, variance=0.008648169362072092, skewness=0.37214025528761063, kurtosis=-0.9957371162151225)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.018602835, 0.4042974), mean=0.14028133, variance=0.008654623427615022, skewness=0.3722398434844169, kurtosis=-0.9954501641822806)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.018608969, 0.40428925), mean=0.14028813, variance=0.0086555109780425, skewness=0.37224869336990124, kurtosis=-0.9954477095987477)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.01861159, 0.40435475), mean=0.1402948, variance=0.008656425710726475, skewness=0.3722892936552457, kurtosis=-0.9953278887822319)
+Epoch: 5, Train Loss: 4618881.024390, Test Loss: 4346257.500000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 481.24125385284424
+Epoch 6: 0/1288 0%, Loss: 4346256.0000
+Epoch 6: 320/1288 24%, Loss: 4286940.4545
+Epoch 6: 640/1288 49%, Loss: 4229503.7381
+Epoch 6: 960/1288 73%, Loss: 4173836.1613
+Epoch 6: 1256/1288 98%, Loss: 4119839.2439
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.01623702, 0.53854656), mean=0.15453465, variance=0.013206771781270263, skewness=0.38587586896086307, kurtosis=-1.0626345198381695)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.016313268, 0.5460935), mean=0.15517093, variance=0.013320115603017114, skewness=0.3871904099309032, kurtosis=-1.0581367643529265)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.016342342, 0.55623645), mean=0.15553884, variance=0.013393305451332011, skewness=0.38989579796348195, kurtosis=-1.0492455777354965)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.016353732, 0.5509215), mean=0.1555513, variance=0.013389074452809424, skewness=0.3882582750342886, kurtosis=-1.0544473478640026)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.016380163, 0.55224085), mean=0.15584, variance=0.013441221337246628, skewness=0.3889213819972534, kurtosis=-1.0523211960833958)
+Epoch: 6, Train Loss: 4119839.243902, Test Loss: 3896763.900000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 430.81004548072815
+Epoch 7: 0/1288 0%, Loss: 3896762.5000
+Epoch 7: 320/1288 24%, Loss: 3847672.2727
+Epoch 7: 640/1288 49%, Loss: 3799965.1786
+Epoch 7: 960/1288 73%, Loss: 3753574.2903
+Epoch 7: 1256/1288 98%, Loss: 3708438.0915
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.010546672, 0.6045192), mean=0.13289908, variance=0.011361329993802577, skewness=0.4225628611744212, kurtosis=-1.0002402078061827)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.010606612, 0.612344), mean=0.13351199, variance=0.011467110544802797, skewness=0.42305323821839463, kurtosis=-0.9974875592769954)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.010640181, 0.6275626), mean=0.13400412, variance=0.011564796039857977, skewness=0.4286467002223233, kurtosis=-0.9707307406810588)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.010652037, 0.6202579), mean=0.13409315, variance=0.0115731248577729, skewness=0.42581146556422644, kurtosis=-0.9838516048046131)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.0106735695, 0.6228659), mean=0.13441461, variance=0.011631934387665724, skewness=0.4271904449977138, kurtosis=-0.9773281399410463)
+Epoch: 7, Train Loss: 3708438.091463, Test Loss: 3521671.700000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 442.56517791748047
+Epoch 8: 0/1288 0%, Loss: 3521669.7500
+Epoch 8: 320/1288 24%, Loss: 3480259.9773
+Epoch 8: 640/1288 49%, Loss: 3439920.1190
+Epoch 8: 960/1288 73%, Loss: 3400606.5645
+Epoch 8: 1256/1288 98%, Loss: 3362278.0427
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.0066273874, 0.43704823), mean=0.095290385, variance=0.006378182309687269, skewness=0.42236378484690523, kurtosis=-1.1146421831611029)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.006628588, 0.4372157), mean=0.0952967, variance=0.006379082898630995, skewness=0.4224312911039095, kurtosis=-1.1142511530049206)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.006629578, 0.43824834), mean=0.095317386, variance=0.006382387696838655, skewness=0.4228943445884498, kurtosis=-1.1119386795230346)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.006629259, 0.43817645), mean=0.09531915, variance=0.0063827057435028554, skewness=0.42294047171286425, kurtosis=-1.1117342749557713)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.0066287573, 0.43827152), mean=0.09531408, variance=0.006382163376307772, skewness=0.42305950080400684, kurtosis=-1.111163524599269)
+Epoch: 8, Train Loss: 3362278.042683, Test Loss: 3203515.850000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 482.5471000671387
+Epoch 9: 0/1288 0%, Loss: 3203512.5000
+Epoch 9: 320/1288 24%, Loss: 3168133.1818
+Epoch 9: 640/1288 49%, Loss: 3133614.6190
+Epoch 9: 960/1288 73%, Loss: 3099925.3306
+Epoch 9: 1256/1288 98%, Loss: 3067036.2988
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.005890654, 0.45446408), mean=0.094860226, variance=0.00687619449138958, skewness=0.43521859232166477, kurtosis=-1.184795577222044)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.005891927, 0.45590118), mean=0.09488364, variance=0.006880444116363951, skewness=0.43594941338188314, kurtosis=-1.1810054384419457)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.005892604, 0.45841235), mean=0.094900966, variance=0.0068844581167232625, skewness=0.43718805519670983, kurtosis=-1.1746861677393627)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.0058927825, 0.45716342), mean=0.09490146, variance=0.006883909567718243, skewness=0.43668254560712494, kurtosis=-1.177285172139053)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.005893237, 0.45748872), mean=0.09491166, variance=0.006885844063067636, skewness=0.4370430433502798, kurtosis=-1.1754310809111654)
+Epoch: 9, Train Loss: 3067036.298780, Test Loss: 2930710.900000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 418.1366124153137
+Epoch 10: 0/1288 0%, Loss: 2930706.5000
+Epoch 10: 320/1288 24%, Loss: 2900229.6364
+Epoch 10: 640/1288 49%, Loss: 2870464.0119
+Epoch 10: 960/1288 73%, Loss: 2841387.2339
+Epoch 10: 1256/1288 98%, Loss: 2812978.2744
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.004888117, 0.7368995), mean=0.096419245, variance=0.008198177570051137, skewness=0.7428076285365873, kurtosis=0.7817096690332002)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.004888397, 0.7369138), mean=0.09642541, variance=0.008200066292261969, skewness=0.7437393029481367, kurtosis=0.7894185877688344)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.00488855, 0.7365105), mean=0.096426144, variance=0.00819868886615259, skewness=0.7421083662221948, kurtosis=0.775998159297699)
+Statistics of predicted variances: DescribeResult(nobs=64000000, minmax=(0.004888542, 0.7377767), mean=0.096428946, variance=0.008201381319757872, skewness=0.7444575319131851, kurtosis=0.795260207591372)
+Statistics of predicted variances: DescribeResult(nobs=28000000, minmax=(0.00488854, 0.73687685), mean=0.09642819, variance=0.008199949110346858, skewness=0.7431065083221897, kurtosis=0.784184063806975)
+Epoch: 10, Train Loss: 2812978.274390, Test Loss: 2695177.850000, Accuracy: 84.25%, RMSE: 1.0867
+Epoch training time (s): 476.0692677497864
+Training time (s): 4474.453535556793

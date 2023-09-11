@@ -18,6 +18,21 @@ def plot_spot(preds, truth):
     return fig
 
 
+def plot_one_img(tsr):
+    """
+    :param tsr: tensor with shape time x width x height
+    :return: fig
+    """
+    nb_lon = tsr.shape[0]
+    nb_lat = tsr.shape[1]
+    fig, ax = plt.subplots(figsize=(12, 12))
+    ax.set_aspect('equal')
+    _ = ax.imshow(tsr, cmap='Greys', interpolation='none', aspect="auto")
+    ax.set_xlim(0, nb_lon)
+    ax.set_ylim(0, nb_lat)
+    return fig
+
+
 def plot_pred(preds, truth, nb_classes=5, t_init=70):
     """
     Plot the predicted congestion and the true congestion

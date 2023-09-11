@@ -1,3 +1,32 @@
+name: vdp6
+model: weights.pt
+seed: 0
+gpu_number: 1
+load: False
+dim: [6, 6]
+emb: [512]
+vdp: True
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 280
+T_out: 40
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+predict_spot: False
+spot: [42, 17, 3]
+batch_size: 16
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+epochs: 100
+workers: 8
+clip: 10
+stop: 1
+tol: 1e-06
 Preprocessing training set
 Building outputs
 Preprocessing done
@@ -27,24 +56,35 @@ vz        4924.000000
 cong       130.251945
 dtype: float64
 Max nb of a/c: 785
+Nb of rows: 1328679
 Nb of timestamps: 3025
 Nb of sequences: 2706
 Trainset length: 1288
 Trainset balance
-Class 0: 5111781 ; 91.08%
-Class 1: 125180 ; 2.23%
-Class 2: 125179 ; 2.23%
-Class 3: 125180 ; 2.23%
-Class 4: 125180 ; 2.23%
+Class 0: 1876736 ; 78.94%
+Class 1: 125180 ; 5.27%
+Class 2: 125179 ; 5.27%
+Class 3: 125180 ; 5.27%
+Class 4: 125180 ; 5.27%
+Weight 0: 1.00
+Weight 1: 14.99
+Weight 2: 14.99
+Weight 3: 14.99
+Weight 4: 14.99
 Testset length: 142
 Testset balance
-Class 0: 1642454 ; 84.23%
-Class 1: 76887 ; 3.94%
-Class 2: 76886 ; 3.94%
-Class 3: 76886 ; 3.94%
-Class 4: 76887 ; 3.94%
+Class 0: 488054 ; 61.34%
+Class 1: 76887 ; 9.66%
+Class 2: 76886 ; 9.66%
+Class 3: 76886 ; 9.66%
+Class 4: 76887 ; 9.66%
+Weight 0: 1.00
+Weight 1: 6.35
+Weight 2: 6.35
+Weight 3: 6.35
+Weight 4: 6.35
 Hot-spots
-int_lon  int_lat  int_alt
+idx_lon  idx_lat  idx_alt
 42.0     17.0     3.0        1.524926
 30.0     24.0     1.0        1.412558
 38.0     26.0     3.0        1.095503
@@ -56,3 +96,4 @@ int_lon  int_lat  int_alt
 39.0     36.0     3.0        0.551282
          22.0     3.0        0.545625
 Name: cong, dtype: float64
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.

@@ -50,7 +50,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
                 loss                 = loss_vdp(prob, var_prob, y, model, param)
-                print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten())}')
+                print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
             else:
                 pred, prob = model.inference(x)
                 loss       = oce(prob, y, param)

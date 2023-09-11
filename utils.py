@@ -3,6 +3,7 @@ import argparse
 # import math
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from dataset import TsagiSet
 from attention import TransformerED
@@ -34,24 +35,12 @@ def oce(probs, target, param):
     """
     probs  = probs.clamp(param['tol'], 1-param['tol'])
     target = target[:, 1:, :]
-    idx    = target.unsqueeze(3).expand(*target.shape, param['nb_classes'])
-    probs  = torch.take_along_dim(probs, idx, dim=3)[..., 0]
-    loss = -torch.log(probs)
-    # Remove elements from the loss by multiplying them by 0
-    # such that the proportion of 0 in target is 1/param['nb_classes']
-    nb_total = target.numel()
-    coef     = torch.eq(target, 0)
-    nb_zero  = coef.long().sum().item()
-    remove   = int(max(nb_zero - nb_total/param['nb_classes'], 0))
-    if remove > 0:
-        index = torch.nonzero(coef, as_tuple=False)
-        index = index[torch.randperm(nb_zero)]
-        index = index[:nb_zero-remove,:]
-        coef[index.t().tolist()] = False
-        coef  = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
-        loss  = loss*coef
-    loss = loss.mean()
-    return loss
+    mask   = target.ne(-1).int()
+    weight = torch.take(param['weights'], target)
+    target = F.one_hot(target, num_classes=param['nb_classes'])
+    probs  = torch.matmul(target.unsqueeze(-2), probs.unsqueeze(-1)).squeeze()
+    loss   = -mask*weight*(1 - probs)**param['focus']*torch.log(probs)
+    return loss.mean()
 
 
 def initialize(param, device, train=True):

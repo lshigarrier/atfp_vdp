@@ -1,8 +1,10 @@
 import os
 import math
+import scipy
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from vdp import loss_vdp
 from utils import load_yaml, oce, initialize
 from plots import plot_spot, plot_pred, plot_pred_vdp
@@ -33,6 +35,8 @@ def test(param, device, testloader, model):
                 pred, prob, var_prob = model.inference(x)
                 indexes = pred.unsqueeze(3).expand(*pred.shape, param['nb_classes']).long()
                 var     = torch.take_along_dim(var_prob, indexes, dim=3)[..., 0]
+                for t in range(var.shape[1]):
+                    print(f'Statistics at time {t}: {scipy.stats.describe(var[:, t, :].flatten())}')
             else:
                 pred, prob = model.inference(x)
             if param['predict_spot']:
@@ -113,6 +117,8 @@ def one_test_run(param):
     if param['predict_spot']:
         _ = plot_spot(preds, truth)
     else:
+        cm = confusion_matrix(truth.flatten(), preds.flatten())
+        ConfusionMatrixDisplay(cm).plot()
         if param['vdp']:
             _ = plot_pred_vdp(preds, truth, varis, param['nb_classes'])
         else:

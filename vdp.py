@@ -27,11 +27,18 @@ def loss_vdp(probs, var_prob, target, model, param):
                 kl += torch.sum(torch.nan_to_num(p**2, nan=param['tol'], posinf=param['tol'], neginf=param['tol']))
     # Compute the expected negative log-likelihood
     probs   = probs.clamp(param['tol'], 1-param['tol'])
-    target  = F.one_hot(target[:, 1:, :], num_classes=param['nb_classes'])
+    target  = target[:, 1:, :]
+    mask    = target.ne(-1).int()
+    weights = torch.take(param['weights'], target)
+    target  = F.one_hot(target, num_classes=param['nb_classes'])
+    p_true  = torch.matmul(target.unsqueeze(-2), probs.unsqueeze(-1)).squeeze()
     inv_var = torch.div(1, var_prob)
-    nll     = torch.nan_to_num(torch.matmul(((target - probs)*inv_var).unsqueeze(-2), (target - probs).unsqueeze(-1)),
+    nll     = torch.nan_to_num(mask*weights*(1 - p_true)**param['focus']*
+                               torch.matmul(((target - probs)*inv_var).unsqueeze(-2),
+                                            (target - probs).unsqueeze(-1)).squeeze(),
                                nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
-    nll    += torch.nan_to_num(torch.log(var_prob.prod(dim=-1) + param['tol']),
+    nll    += torch.nan_to_num(mask*weights*(1 - p_true)**param['focus']*
+                               torch.log(var_prob.prod(dim=-1) + param['tol']),
                                nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
     shapes  = probs.shape
     return nll/(shapes[0]*shapes[1]*shapes[2]) + kl
@@ -41,10 +48,17 @@ def quadratic_vdp(x, var_x, y, var_y):
     return torch.matmul(x, y), torch.matmul(var_x + x**2, var_y) + torch.matmul(var_x, y**2)
 
 
-def relu_vdp(x, var_x):
+def quadratic_jac(x, jac_x, y, jac_y):
+    return torch.matmul(jac_x, y) + torch.matmul(x, jac_y)
+
+
+def relu_vdp(x, var_x, return_jac=False):
     x   = F.relu(x)
     der = torch.logical_not(torch.eq(x, 0)).long()
-    return x, var_x*der
+    if return_jac:
+        return x, var_x*der, der
+    else:
+        return x, var_x*der
 
 
 def sigmoid_vdp(x, var_x):
@@ -53,13 +67,16 @@ def sigmoid_vdp(x, var_x):
     return x, var_x*der**2
 
 
-def softmax_vdp(x, var_x):
+def softmax_vdp(x, var_x, return_jac=False):
     """
     To avoid an out-of-memory error, we must neglect the off-diagonal terms of the Jacobian
     """
     prob = F.softmax(x, dim=-1)
     der  = prob*(1 - prob)
-    return prob, var_x*der**2
+    if return_jac:
+        return prob, var_x*der**2, der
+    else:
+        return prob, var_x*der**2
     # jac = torch.diag_embed(prob) - torch.matmul(prob.unsqueeze(-1), prob.unsqueeze(-2))
     # var = torch.matmul(jac*var_x.unsqueeze(-2), jac.transpose(-1, -2))
     # return prob, torch.diagonal(var, dim1=-2, dim2=-1)
@@ -95,7 +112,7 @@ class LinearVDP(nn.Module):
             b_sig = torch.zeros(out_features)
             self.b = nn.Parameter(b)
             self.b_sig = nn.Parameter(b_sig)
-            bound = 1 / math.sqrt(in_features)
+            bound = 1/math.sqrt(in_features)
             nn.init.uniform_(self.b, -bound, bound)
             nn.init.uniform_(self.b_sig, -bound, bound)
 
@@ -109,6 +126,9 @@ class LinearVDP(nn.Module):
             return mean.transpose(-2, -1) + self.b, var.transpose(-2, -1) + self.b_sig**2
         else:
             return mean.transpose(-2, -1), var.transpose(-2, -1)
+
+    def get_jac(self):
+        return self.weights.transpose(-2, -1)
 
 
 class LayerNormVDP(nn.Module):
