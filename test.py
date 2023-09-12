@@ -58,9 +58,9 @@ def test(param, device, testloader, model):
 
             t        += pred.shape[0]
             if param['vdp']:
-                loss = loss_vdp(prob, var_prob, y, model, param)
+                loss = loss_vdp(prob, var_prob, y, model, param, device)
             else:
-                loss = oce(prob, y, param)
+                loss = oce(prob, y, param, device)
             test_list.append(loss.item())
             y         = y[:, 1:, :]
             rmse     += ((pred - y)**2).float().sum().item()
@@ -117,7 +117,12 @@ def one_test_run(param):
     if param['predict_spot']:
         _ = plot_spot(preds, truth)
     else:
-        cm = confusion_matrix(truth.flatten(), preds.flatten())
+        truth_flat = truth.flatten()
+        preds_flat = preds.flatten()
+        mask = truth_flat.ne(-1)
+        truth_flat = truth_flat[mask]
+        preds_flat = preds_flat[mask]
+        cm = confusion_matrix(truth_flat, preds_flat)
         ConfusionMatrixDisplay(cm).plot()
         if param['vdp']:
             _ = plot_pred_vdp(preds, truth, varis, param['nb_classes'])

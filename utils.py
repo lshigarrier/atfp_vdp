@@ -25,21 +25,38 @@ def load_yaml(file_name=None):
     return param
 
 
-def oce(probs, target, param):
+def oce(probs, target, param, device):
     """
     Ordinal Cross-Entropy
     :param probs: batch_size x T_out x (nb_lon x nb_lat) x nb_classes
     :param target: batch_size x T_out x (nb_lon x nb_lat)
     :param param:
+    :param device:
     :return: loss
     """
     probs  = probs.clamp(param['tol'], 1-param['tol'])
     target = target[:, 1:, :]
+    if param['balance']:
+        nb_total = target.ne(-1).int().sum().item()
+        coef     = torch.eq(target, 0)
     mask   = target.ne(-1).int()
-    weight = torch.take(param['weights'], target)
+    target = mask*target
+    weight = torch.take(torch.tensor(param['weights']).to(device), target)
     target = F.one_hot(target, num_classes=param['nb_classes'])
-    probs  = torch.matmul(target.unsqueeze(-2), probs.unsqueeze(-1)).squeeze()
+    probs  = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze()
     loss   = -mask*weight*(1 - probs)**param['focus']*torch.log(probs)
+    # Remove elements from the loss by multiplying them by 0
+    # such that the proportion of 0 in target is 1/param['nb_classes']
+    if param['balance']:
+        nb_zero = coef.long().sum().item()
+        remove = int(max(nb_zero - nb_total / param['nb_classes'], 0))
+        if remove > 0:
+            index = torch.nonzero(coef, as_tuple=False)
+            index = index[torch.randperm(nb_zero)]
+            index = index[:nb_zero - remove, :]
+            coef[index.t().tolist()] = False
+            coef = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
+            loss = loss*coef
     return loss.mean()
 
 

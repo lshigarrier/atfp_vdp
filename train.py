@@ -19,10 +19,10 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         # Forward pass
         if param['vdp']:
             probs, var_prob = model(x, y)
-            loss = loss_vdp(probs, var_prob, y, model, param)
+            loss = loss_vdp(probs, var_prob, y, model, param, device)
         else:
             probs = model(x, y)
-            loss = oce(probs, y, param)
+            loss = oce(probs, y, param, device)
 
         # backprop
         loss.backward()
@@ -49,11 +49,11 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             x, y  = x.to(device), y.to(device)
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
-                loss                 = loss_vdp(prob, var_prob, y, model, param)
+                loss                 = loss_vdp(prob, var_prob, y, model, param, device)
                 print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
             else:
                 pred, prob = model.inference(x)
-                loss       = oce(prob, y, param)
+                loss       = oce(prob, y, param, device)
             test_list.append(loss.item())
             y = y[:, 1:, :]
             rmse      += ((pred - y)**2).float().sum().item()
@@ -83,9 +83,9 @@ def training(param, device, trainloader, testloader, model, optimizer):
             torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
         elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
-            print(f'Best epoch: {best_epoch}')
-            print(f'Best loss: {best_loss:.6f}')
             break
+    print(f'Best epoch: {best_epoch}')
+    print(f'Best loss: {best_loss:.6f}')
     print(f'Training time (s): {time.time() - tac}')
 
 

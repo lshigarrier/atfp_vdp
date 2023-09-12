@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def loss_vdp(probs, var_prob, target, model, param):
+def loss_vdp(probs, var_prob, target, model, param, device):
     """
     Ordinal Cross-Entropy
     :param probs: batch_size x T_out x (nb_lon x nb_lat) x nb_classes
@@ -12,6 +12,7 @@ def loss_vdp(probs, var_prob, target, model, param):
     :param target: batch_size x T_out x (nb_lon x nb_lat)
     :param model:
     :param param:
+    :param device:
     :return: loss
     """
     # Compute the regularization term
@@ -28,20 +29,36 @@ def loss_vdp(probs, var_prob, target, model, param):
     # Compute the expected negative log-likelihood
     probs   = probs.clamp(param['tol'], 1-param['tol'])
     target  = target[:, 1:, :]
+    if param['balance']:
+        nb_total = target.ne(-1).int().sum().item()
+        coef     = torch.eq(target, 0)
     mask    = target.ne(-1).int()
-    weights = torch.take(param['weights'], target)
+    target  = mask*target
+    weights = torch.take(torch.tensor(param['weights']).to(device), target)
     target  = F.one_hot(target, num_classes=param['nb_classes'])
-    p_true  = torch.matmul(target.unsqueeze(-2), probs.unsqueeze(-1)).squeeze()
+    p_true  = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze()
     inv_var = torch.div(1, var_prob)
     nll     = torch.nan_to_num(mask*weights*(1 - p_true)**param['focus']*
                                torch.matmul(((target - probs)*inv_var).unsqueeze(-2),
                                             (target - probs).unsqueeze(-1)).squeeze(),
-                               nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
+                               nan=param['tol'], posinf=param['tol'], neginf=param['tol'])
     nll    += torch.nan_to_num(mask*weights*(1 - p_true)**param['focus']*
                                torch.log(var_prob.prod(dim=-1) + param['tol']),
-                               nan=param['tol'], posinf=param['tol'], neginf=param['tol']).sum()
-    shapes  = probs.shape
-    return nll/(shapes[0]*shapes[1]*shapes[2]) + kl
+                               nan=param['tol'], posinf=param['tol'], neginf=param['tol'])
+    # Remove elements from the loss by multiplying them by 0
+    # such that the proportion of 0 in target is 1/param['nb_classes']
+    if param['balance']:
+        nb_zero = coef.long().sum().item()
+        remove = int(max(nb_zero - nb_total / param['nb_classes'], 0))
+        if remove > 0:
+            index = torch.nonzero(coef, as_tuple=False)
+            index = index[torch.randperm(nb_zero)]
+            index = index[:nb_zero - remove, :]
+            coef[index.t().tolist()] = False
+            coef = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
+            nll  = nll*coef
+    shapes = probs.shape
+    return nll.sum()/(shapes[0]*shapes[1]*shapes[2]) + kl
 
 
 def quadratic_vdp(x, var_x, y, var_y):

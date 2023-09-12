@@ -1,18 +1,20 @@
-name       : vdp6
+name       : ed9
 model      : weights.pt
 seed       : 0
-gpu_number : "1"
+gpu_number : "2"
 # load existing weights from ./models/[name]/[model]
 load       : False
 
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim : [6, 6]
+dim      : [8, 8]
 # embedding dimensions
-emb : [512,]
+emb      : [512,]
 # use uncertainty quantification
-vdp : True
+vdp      : False
+# Residual connection mode: identity, independence, taylor
+residual : identity
 
 # dataset
 
@@ -46,14 +48,17 @@ spot         : [42, 17, 3]
 
 # training
 
-batch_size    : 16
+batch_size    : 64
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
+# parameter 'gamma' in focal loss
 focus         : 3
-epochs        : 100
+# balance each batch by removing elements from class 0
+balance       : True
+epochs        : 1000
 # test loss increase for early stopping
-stop          : 1
+stop          : 0.5
 # nb of workers for dataloaders
 workers       : 8
 # gradient clipping

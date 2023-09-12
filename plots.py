@@ -42,6 +42,7 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     nb_times = preds.shape[0]
     nb_lon   = preds.shape[1]
     nb_lat   = preds.shape[2]
+    mask     = truth[0].ne(-1).int()
 
     # Create colormap
     colors    = plt.cm.jet
@@ -55,8 +56,8 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     ax[0].set_aspect('equal')
     ax[1].set_aspect('equal')
     plt.subplots_adjust(bottom=0.2)
-    im_pred = ax[0].imshow(preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
-    im_true = ax[1].imshow(truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_pred = ax[0].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_true = ax[1].imshow(mask*truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
     ax[0].set_xlim(0, nb_lon)
     ax[0].set_ylim(0, nb_lat)
     ax[1].set_xlim(0, nb_lon)
@@ -73,8 +74,8 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
 
     def update_eval(val):
         time = int(slider.val)
-        im_pred.set_data(preds[time, ...])
-        im_true.set_data(truth[time, ...])
+        im_pred.set_data(mask*preds[time, ...])
+        im_true.set_data(mask*truth[time, ...])
         plt.draw()
 
     slider.on_changed(update_eval)
@@ -90,6 +91,7 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
     nb_times = preds.shape[0]
     nb_lon   = preds.shape[1]
     nb_lat   = preds.shape[2]
+    mask     = truth[0].ne(-1).int()
 
     # Describe variances
     print(f'Statistics of predicted variances: {scipy.stats.describe(varis.flatten())}')
@@ -107,9 +109,9 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
     ax[1].set_aspect('equal')
     ax[2].set_aspect('equal')
     ax[3].set_aspect('equal')
-    im_pred = ax[1].imshow(preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
-    im_true = ax[2].imshow(truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
-    im_var  = ax[3].imshow(varis[t_init, ...], cmap='viridis', norm=norm_var, aspect="auto")
+    im_pred = ax[1].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_true = ax[2].imshow(mask*truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_var  = ax[3].imshow(mask*varis[t_init, ...], cmap='viridis', norm=norm_var, aspect="auto")
     ax[1].set_xlim(0, nb_lon)
     ax[1].set_ylim(0, nb_lat)
     ax[2].set_xlim(0, nb_lon)
@@ -131,9 +133,9 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
 
     def update_eval(val):
         time = int(slider.val)
-        im_pred.set_data(preds[time, ...])
-        im_true.set_data(truth[time, ...])
-        im_var.set_data(varis[time, ...])
+        im_pred.set_data(mask*preds[time, ...])
+        im_true.set_data(mask*truth[time, ...])
+        im_var.set_data(mask*varis[time, ...])
         plt.draw()
 
     slider.on_changed(update_eval)

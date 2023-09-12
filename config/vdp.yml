@@ -1,14 +1,9 @@
-name       : ed8
+name       : vdp6
 model      : weights.pt
 seed       : 0
-gpu_number : null
+gpu_number : "1"
 # load existing weights from ./models/[name]/[model]
-load       : True
-
-# plot
-
-save_plot : True
-fig_file  : outputs/images/pickle/ed8/
+load       : False
 
 # model
 
@@ -17,7 +12,7 @@ dim      : [6, 8]
 # embedding dimensions
 emb      : [512,]
 # use uncertainty quantification
-vdp      : False
+vdp      : True
 # Residual connection mode: identity, independence, taylor
 residual : identity
 
@@ -53,7 +48,7 @@ spot         : [42, 17, 3]
 
 # training
 
-batch_size    : 64
+batch_size    : 32
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
