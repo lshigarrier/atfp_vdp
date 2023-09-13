@@ -241,7 +241,7 @@ class TransformerED(nn.Module):
 
     def inference(self, x):
         k, v = self.encoder(x)
-        pred = torch.ones(x.shape[0], self.l+1, self.d).to(self.device)
+        pred = -2*torch.ones(x.shape[0], self.l+1, self.d).to(self.device)
         prob = torch.ones(x.shape[0], self.l, self.d, self.nb_class).to(self.device)
         for t in range(self.l):
             y = self.decoder(pred, k, v)

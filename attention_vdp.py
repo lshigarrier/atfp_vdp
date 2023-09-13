@@ -11,7 +11,7 @@ class AttentionHeadVDP(nn.Module):
     h: nb of heads
     d: input dimension
     """
-    def __init__(self, h, d, device, mode='identity'):
+    def __init__(self, h, d, device, mode='identity', tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
@@ -19,9 +19,10 @@ class AttentionHeadVDP(nn.Module):
         self.h      = h
         self.device = device
         self.mode   = mode
-        self.query  = LinearVDP(d, h*(d//h), bias=False)
-        self.key    = LinearVDP(d, h*(d//h), bias=False)
-        self.value  = LinearVDP(d, h*(d//h), bias=False)
+        self.tol    = tol
+        self.query  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.key    = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.value  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
 
     def forward(self, x, var_x, masking=False):
         q, var_q = self.query(x, var_x)  # b x l x h.s where s = d//h
@@ -33,30 +34,31 @@ class AttentionHeadVDP(nn.Module):
         v, var_v = self.value(x, var_x)  # b x l x h.s
         v = v.reshape(v.shape[0], v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
         var_v = var_v.reshape(var_v.shape[0], var_v.shape[1], self.h, -1).transpose(1, 2)  # b x h x l x s
-        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))  # b x h x l x l
+        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3), tol=self.tol)  # b x h x l x l
         a, var_a = a/self.rd, var_a/self.rd**2
         if masking:
             mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
             mask = mask.masked_fill(mask==1, float('-inf'))
             a    = a + mask
-        a, var_a = softmax_vdp(a, var_a)  # b x h x l x l
-        a, var_a = quadratic_vdp(a, var_a, v, var_v)
+        a, var_a = softmax_vdp(a, var_a, tol=self.tol)  # b x h x l x l
+        a, var_a = quadratic_vdp(a, var_a, v, var_v, tol=self.tol)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)  # b x l x h x s
         return residual_vdp(x, var_x, a.reshape(a.shape[0], a.shape[1], -1),
-                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1), mode=self.mode) # b x l x h.s
+                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1),
+                            mode=self.mode, tol=self.tol) # b x l x h.s
 
 
 class FinalHeadVDP(nn.Module):
     """
     Last Multi Head of the encoder
     """
-    def __init__(self, h, d):
+    def __init__(self, h, d, tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
         self.h     = h
-        self.key   = LinearVDP(d, h*(d//h), bias=False)
-        self.value = LinearVDP(d, h*(d//h), bias=False)
+        self.key   = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.value = LinearVDP(d, h*(d//h), bias=False, tol=tol)
 
     def forward(self, x, var_x):
         k, var_k = self.key(x, var_x)
@@ -72,7 +74,7 @@ class DecoderHeadVDP(nn.Module):
     """
     Multi Head Attention using key and value from the encoder
     """
-    def __init__(self, h, d, device, mode='identity'):
+    def __init__(self, h, d, device, mode='identity', tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
@@ -80,22 +82,24 @@ class DecoderHeadVDP(nn.Module):
         self.h      = h
         self.device = device
         self.mode   = mode
-        self.query  = LinearVDP(d, h*(d//h), bias=False)
+        self.tol    = tol
+        self.query  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
 
     def forward(self, x, var_x, k, var_k, v, var_v):
         q, var_q = self.query(x, var_x)
         q = q.reshape(q.shape[0], q.shape[1], self.h, -1).transpose(1, 2)
         var_q = var_q.reshape(var_q.shape[0], var_q.shape[1], self.h, -1).transpose(1, 2)
-        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3))
+        a, var_a = quadratic_vdp(q, var_q, k.transpose(2, 3), var_k.transpose(2, 3), tol=self.tol)
         a, var_a = a/self.rd, var_a/self.rd**2
         mask = torch.ones(*a.shape).triu(diagonal=1).to(self.device)
         mask = mask.masked_fill(mask == 1, float('-inf'))
         a = a + mask
-        a, var_a = softmax_vdp(a, var_a)
-        a, var_a = quadratic_vdp(a, var_a, v, var_v)
+        a, var_a = softmax_vdp(a, var_a, tol=self.tol)
+        a, var_a = quadratic_vdp(a, var_a, v, var_v, tol=self.tol)
         a, var_a = a.transpose(1, 2), var_a.transpose(1, 2)
         return residual_vdp(x, var_x, a.reshape(a.shape[0], a.shape[1], -1),
-                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1), mode=self.mode)
+                            var_a.reshape(var_a.shape[0], var_a.shape[1], -1),
+                            mode=self.mode, tol=self.tol)
 
 class EncoderVDP(nn.Module):
     def __init__(self, param, device):
@@ -112,28 +116,29 @@ class EncoderVDP(nn.Module):
         self.n     = n
         self.q     = len(emb_dim)
         self.mode  = param['residual']
+        self.tol   = param['tol']
         self.pos   = get_positional_encoding(k, param['T_in'], device)
         self.emb   = nn.ModuleList()
         self.multi = nn.ModuleList()
         self.fc    = nn.ModuleList()
         self.norm1 = nn.ModuleList()
         self.norm2 = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0]))
+        self.emb.append(LinearVDP(d, emb_dim[0], tol=self.tol))
         for i in range(len(emb_dim)-1):
-            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1]))
+            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], tol=self.tol))
         for i in range(n-1):
             if i != 0:
-                 self.norm1.append(LayerNormVDP(k))
-            self.multi.append(AttentionHeadVDP(h, k, device, self.mode))
-            self.norm2.append(LayerNormVDP(k))
-            self.fc.append(LinearVDP(k, k))
-        self.norm1.append(LayerNormVDP(k))
-        self.multi.append(FinalHeadVDP(h, k))
+                 self.norm1.append(LayerNormVDP(k, tol=param['tol']))
+            self.multi.append(AttentionHeadVDP(h, k, device, self.mode, self.tol))
+            self.norm2.append(LayerNormVDP(k, tol=self.tol))
+            self.fc.append(LinearVDP(k, k, tol=self.tol))
+        self.norm1.append(LayerNormVDP(k, tol=self.tol))
+        self.multi.append(FinalHeadVDP(h, k, self.tol))
 
     def forward(self, x):
         var_x = torch.zeros_like(x)
         for i in range(self.q-1):
-            x, var_x = relu_vdp(*self.emb[i](x, var_x))
+            x, var_x = relu_vdp(*self.emb[i](x, var_x), tol=self.tol)
         x, var_x = self.emb[-1](x, var_x)
         x = x + self.pos
         for i in range(self.n-1):
@@ -144,9 +149,9 @@ class EncoderVDP(nn.Module):
             x, var_x = self.norm2[i](x, var_x)
             # Linear layer with skip connection
             x0, var_x0 = x[:], var_x[:]
-            x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True)
+            x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True, tol=self.tol)
             # torch.matmul(j_relu, self.fc[i].get_jac())
-            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode)
+            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode, tol=self.tol)
         x, var_x = self.norm1[self.n-2](x, var_x)
         k, var_k, v, var_v = self.multi[self.n-1](x, var_x)
         return k, var_k, v, var_v
@@ -173,6 +178,7 @@ class DecoderVDP(nn.Module):
         self.q        = len(emb_dim)
         self.device   = device
         self.mode     = param['residual']
+        self.tol      = param['tol']
         self.pos      = get_positional_encoding(k, param['T_out']+1, device)
         self.emb      = nn.ModuleList()
         self.multi1   = nn.ModuleList()
@@ -181,18 +187,18 @@ class DecoderVDP(nn.Module):
         self.norm1    = nn.ModuleList()
         self.norm2    = nn.ModuleList()
         self.norm3    = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0]))
+        self.emb.append(LinearVDP(d, emb_dim[0], tol=self.tol))
         for i in range(len(emb_dim)-1):
-            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1]))
+            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], tol=self.tol))
         for i in range(n):
             if i != 0:
-                self.norm1.append(LayerNormVDP(k))
-            self.multi1.append(AttentionHeadVDP(h, k, device, self.mode))
-            self.norm2.append(LayerNormVDP(k))
-            self.multi2.append(DecoderHeadVDP(h, k, device, self.mode))
-            self.norm3.append(LayerNormVDP(k))
-            self.fc.append(LinearVDP(k, k))
-        self.fc.append(LinearVDP(k, d))
+                self.norm1.append(LayerNormVDP(k, tol=self.tol))
+            self.multi1.append(AttentionHeadVDP(h, k, device, self.mode, self.tol))
+            self.norm2.append(LayerNormVDP(k, tol=self.tol))
+            self.multi2.append(DecoderHeadVDP(h, k, device, self.mode, self.tol))
+            self.norm3.append(LayerNormVDP(k, tol=self.tol))
+            self.fc.append(LinearVDP(k, k, tol=self.tol))
+        self.fc.append(LinearVDP(k, d, tol=self.tol))
         self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 
@@ -200,7 +206,7 @@ class DecoderVDP(nn.Module):
         x = x.float()
         var_x = torch.zeros_like(x)
         for i in range(self.q-1):
-            x, var_x = relu_vdp(*self.emb[i](x, var_x))
+            x, var_x = relu_vdp(*self.emb[i](x, var_x), tol=self.tol)
         x, var_x = self.emb[-1](x, var_x)
         x = x + self.pos
         for i in range(self.n):
@@ -213,8 +219,8 @@ class DecoderVDP(nn.Module):
             x, var_x = self.norm3[i](x, var_x)
             # Linear layer with skip connection
             x0, var_x0 = x[:], var_x[:]
-            x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True)
-            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode)
+            x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True, tol=self.tol)
+            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode, tol=self.tol)
         x, var_x = self.fc[-1](x, var_x)
         probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
         var_prob = torch.zeros(*x.shape, self.nb_class).to(self.device)
@@ -257,7 +263,7 @@ class TransformerED_VDP(nn.Module):
 
     def inference(self, x):
         k, var_k, v, var_v = self.encoder(x)
-        pred     = torch.ones(x.shape[0], self.l+1, self.d).to(self.device)
+        pred     = -2*torch.ones(x.shape[0], self.l+1, self.d).to(self.device)
         prob     = torch.ones(x.shape[0], self.l, self.d, self.nb_class).to(self.device)
         var_prob = torch.ones(x.shape[0], self.l, self.d, self.nb_class).to(self.device)
         for t in range(self.l):

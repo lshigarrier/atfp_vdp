@@ -103,7 +103,7 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
     cmap      = LinearSegmentedColormap.from_list('cmap', colorlist, colors.N)
     bounds    = [i for i in range(nb_classes + 1)]
     norm      = BoundaryNorm(bounds, colors.N)
-    norm_var  = Normalize(vmin=0, vmax=max(varis.max(), 1))
+    norm_var  = Normalize(vmin=varis.min(), vmax=varis.max())
 
     fig, ax = plt.subplots(1, 5, figsize=(17, 5), width_ratios=[1, 10, 10, 10, 1])
     ax[1].set_aspect('equal')
@@ -127,7 +127,7 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
                               spacing='proportional', ticks=bounds, boundaries=bounds, format='%1i')
     ax[0].yaxis.set_ticks_position('left')
     mpl.colorbar.ColorbarBase(ax[4], cmap='viridis', norm=norm_var,
-                              ticks=np.linspace(0, max(varis.max(), 1), nb_classes+1))
+                              ticks=np.linspace(varis.min(), varis.max(), nb_classes+1))
     axe_slider = fig.add_axes([0.1, 0.01, 0.8, 0.05])
     slider     = Slider(axe_slider, 'slider', 0, nb_times - 1, valinit=t_init, valstep=1)
 

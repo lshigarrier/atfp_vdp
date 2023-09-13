@@ -1,4 +1,4 @@
-name       : vdp6
+name       : vdp7
 model      : weights.pt
 seed       : 0
 gpu_number : null
@@ -8,18 +8,20 @@ load       : True
 # plot
 
 save_plot : True
+# Average variance (True) or only the last variance (False)
+average   : True
 fig_file  : outputs/images/pickle/vdp6/
 
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim      : [6, 8]
+dim      : [12, 8]
 # embedding dimensions
 emb      : [512,]
 # use uncertainty quantification
 vdp      : True
 # Residual connection mode: identity, independence, taylor
-residual : identity
+residual : independence
 
 # dataset
 
@@ -57,6 +59,8 @@ batch_size    : 32
 optimizer     : adam
 learning_rate : 0.001
 l2_reg        : 0.0
+# l2 regularization hyperparameter in ELBO
+kl_factor     : 0.01
 # parameter 'gamma' in focal loss
 focus         : 3
 # balance each batch by removing elements from class 0
@@ -69,5 +73,5 @@ workers       : 8
 # gradient clipping
 clip          : 10
 # probability clipping to avoid log(0)
-tol           : 0.000001
+tol           : 0.001
 

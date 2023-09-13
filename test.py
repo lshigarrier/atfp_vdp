@@ -1,6 +1,6 @@
 import os
 import math
-import scipy
+# import scipy
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,12 +16,12 @@ def test(param, device, testloader, model):
             pred_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
             true_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
             if param['vdp']:
-                var_tensor = torch.zeros(len(testloader.dataset), dtype=torch.int)
+                var_tensor = torch.zeros(len(testloader.dataset), dtype=torch.float)
         else:
             pred_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
             true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
             if param['vdp']:
-                var_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
+                var_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.float)
 
         test_list = []
         t         = 0
@@ -35,28 +35,33 @@ def test(param, device, testloader, model):
                 pred, prob, var_prob = model.inference(x)
                 indexes = pred.unsqueeze(3).expand(*pred.shape, param['nb_classes']).long()
                 var     = torch.take_along_dim(var_prob, indexes, dim=3)[..., 0]
-                for t in range(var.shape[1]):
-                    print(f'Statistics at time {t}: {scipy.stats.describe(var[:, t, :].flatten())}')
+                # for t in range(var.shape[1]):
+                #     print(f'Statistics at time {t}: {scipy.stats.describe(var[:, t, :].flatten())}')
             else:
                 pred, prob = model.inference(x)
             if param['predict_spot']:
-                pred_tensor[t:t + pred.shape[0]] = pred[:, -1, 0]
-                true_tensor[t:t + y.shape[0]]    = y[:, -1, 0]
+                pred_tensor[t:t + pred.shape[0]] = pred[:, -1, 0].clone()
+                true_tensor[t:t + y.shape[0]]    = y[:, -1, 0].clone()
                 if param['vdp']:
-                    var_tensor[t:t + pred.shape[0]] = var[:, -1, 0]
+                    var_tensor[t:t + pred.shape[0]] = var[:, -1, 0].clone()
             else:
-                pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].view(pred.shape[0],
-                                                                          param['nb_lon'],
-                                                                          param['nb_lat'])
-                true_tensor[t:t+y.shape[0], ...]    = y[:, -1, :].view(y.shape[0],
-                                                                       param['nb_lon'],
-                                                                       param['nb_lat'])
-                if param['vdp']:
-                    var_tensor[t:t+pred.shape[0], ...]  = var[:, -1, :].view(pred.shape[0],
+                pred_tensor[t:t+pred.shape[0], ...] = pred[:, -1, :].reshape(pred.shape[0],
                                                                              param['nb_lon'],
-                                                                             param['nb_lat'])
+                                                                             param['nb_lat']).clone()
+                true_tensor[t:t+y.shape[0], ...]    = y[:, -1, :].reshape(y.shape[0],
+                                                                          param['nb_lon'],
+                                                                          param['nb_lat']).clone()
+                if param['vdp']:
+                    if param['average']:
+                        var_tensor[t:t + var.shape[0], ...] = var.mean(dim=1).reshape(var.shape[0],
+                                                                                      param['nb_lon'],
+                                                                                      param['nb_lat']).clone()
+                    else:
+                        var_tensor[t:t+var.shape[0], ...]  = var[:, -1, :].reshape(var.shape[0],
+                                                                                   param['nb_lon'],
+                                                                                   param['nb_lat']).clone()
 
-            t        += pred.shape[0]
+            t += pred.shape[0]
             if param['vdp']:
                 loss = loss_vdp(prob, var_prob, y, model, param, device)
             else:
@@ -66,7 +71,7 @@ def test(param, device, testloader, model):
             rmse     += ((pred - y)**2).float().sum().item()
             tot_corr += torch.eq(pred, y).float().sum().item()
             tot_num  += y.numel()
-            if idx % int(len(testloader)/4) == 0:
+            if idx % max(int(len(testloader)/4), 1) == 0:
                 if idx != len(testloader)-1:
                     total = idx*param['batch_size']
                 else:

@@ -1,5 +1,5 @@
 import numpy as np
-import scipy
+# import scipy
 import math
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 22})
@@ -31,7 +31,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
 
         loss_list.append(loss.item())
 
-        if idx % int(len(trainloader)/4) == 0:
+        if idx % max(int(len(trainloader)/4), 1) == 0:
             if idx != len(trainloader)-1:
                 total = idx*param['batch_size']
             else:
@@ -50,7 +50,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
                 loss                 = loss_vdp(prob, var_prob, y, model, param, device)
-                print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
+                # print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
             else:
                 pred, prob = model.inference(x)
                 loss       = oce(prob, y, param, device)
