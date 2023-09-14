@@ -4,17 +4,52 @@ seed       : 0
 gpu_number : "2"
 # load existing weights from ./models/[name]/[model]
 load       : False
+pretrained : False
+pretrain   : pretrain.pt
+
+# plot
+
+save_plot : True
+# Average variance (True) or only the last variance (False)
+average   : True
+# Variance scale range
+var_range : [0, 1]
+fig_file  : models/ed11/
 
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim      : [12, 8]
+dim      : [6, 4]
 # embedding dimensions
-emb      : [512,]
+emb      : [256,]
 # use uncertainty quantification
 vdp      : False
 # Residual connection mode: identity, independence, taylor
 residual : independence
+
+# training
+
+batch_size    : 32
+optimizer     : adam
+learning_rate : 1.e-3
+l2_reg        : 0.
+# l2 regularization hyperparameter in ELBO
+kl_factor     : 1.e-24
+# parameter 'gamma' in focal loss
+focus         : 2
+# balance each batch by removing elements from class 0
+balance       : False
+epochs        : 100
+# test loss increase for early stopping
+stop          : 0.5
+# nb of workers for dataloaders
+workers       : 8
+# gradient clipping
+clip          : 10
+# probability clipping to avoid log(0)
+tol           : 1.e-6
+# initialization factor for variance
+var_init      : 1.e-24
 
 # dataset
 
@@ -45,26 +80,4 @@ weights     : [1., 15., 15., 15., 15.]
 predict_spot : False
 # hot-spot int_lon, int_lat, int_alt
 spot         : [42, 17, 3]
-
-# training
-
-batch_size    : 32
-optimizer     : adam
-learning_rate : 0.001
-l2_reg        : 0.0
-# l2 regularization hyperparameter in ELBO
-kl_factor     : 0.01
-# parameter 'gamma' in focal loss
-focus         : 3
-# balance each batch by removing elements from class 0
-balance       : False
-epochs        : 1000
-# test loss increase for early stopping
-stop          : 0.5
-# nb of workers for dataloaders
-workers       : 8
-# gradient clipping
-clip          : 10
-# probability clipping to avoid log(0)
-tol           : 0.001
 

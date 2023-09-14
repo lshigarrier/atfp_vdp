@@ -1,6 +1,5 @@
 import yaml
 import argparse
-# import math
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -60,6 +59,13 @@ def oce(probs, target, param, device):
     return loss.mean()
 
 
+def load_partial_state_dict(model, other_state_dict):
+    with torch.no_grad():
+        for name, par in model.named_parameters():
+            if name in other_state_dict:
+                par.copy_(other_state_dict[name])
+
+
 def initialize(param, device, train=True):
     # Print param
     for key in param:
@@ -76,12 +82,12 @@ def initialize(param, device, train=True):
 
     # Load datasets and create data loaders
     if train:
-        trainset = TsagiSet(param, train=True)
+        trainset    = TsagiSet(param, train=True)
         trainloader = DataLoader(trainset, batch_size=param['batch_size'],
                                  shuffle=True, pin_memory=True, num_workers=param['workers'])
     else:
         trainloader = None
-    testset  = TsagiSet(param, train=False)
+    testset     = TsagiSet(param, train=False)
     testloader  = DataLoader(testset, batch_size=param['batch_size'],
                              shuffle=False, pin_memory=True, num_workers=param['workers'])
 
@@ -92,6 +98,9 @@ def initialize(param, device, train=True):
         for parameter in model.parameters():
             parameter.requires_grad = False
         model.eval()
+    if param['pretrained']:
+        checkpoint = torch.load(f'models/{param["name"]}/{param["pretrain"]}', map_location='cpu')
+        load_partial_state_dict(model, checkpoint)
     model.to(device)
 
     # Set optimizer

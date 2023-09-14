@@ -11,7 +11,7 @@ class AttentionHeadVDP(nn.Module):
     h: nb of heads
     d: input dimension
     """
-    def __init__(self, h, d, device, mode='identity', tol=1e-3):
+    def __init__(self, h, d, device, mode='identity', var_init=1e-8, tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
@@ -20,9 +20,9 @@ class AttentionHeadVDP(nn.Module):
         self.device = device
         self.mode   = mode
         self.tol    = tol
-        self.query  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
-        self.key    = LinearVDP(d, h*(d//h), bias=False, tol=tol)
-        self.value  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.query  = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
+        self.key    = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
+        self.value  = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
 
     def forward(self, x, var_x, masking=False):
         q, var_q = self.query(x, var_x)  # b x l x h.s where s = d//h
@@ -52,13 +52,13 @@ class FinalHeadVDP(nn.Module):
     """
     Last Multi Head of the encoder
     """
-    def __init__(self, h, d, tol=1e-3):
+    def __init__(self, h, d, var_init=1e-8, tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
         self.h     = h
-        self.key   = LinearVDP(d, h*(d//h), bias=False, tol=tol)
-        self.value = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.key   = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
+        self.value = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
 
     def forward(self, x, var_x):
         k, var_k = self.key(x, var_x)
@@ -74,7 +74,7 @@ class DecoderHeadVDP(nn.Module):
     """
     Multi Head Attention using key and value from the encoder
     """
-    def __init__(self, h, d, device, mode='identity', tol=1e-3):
+    def __init__(self, h, d, device, mode='identity', var_init=1e-8, tol=1e-3):
         super().__init__()
         if d % h != 0:
             raise RuntimeError
@@ -83,7 +83,7 @@ class DecoderHeadVDP(nn.Module):
         self.device = device
         self.mode   = mode
         self.tol    = tol
-        self.query  = LinearVDP(d, h*(d//h), bias=False, tol=tol)
+        self.query  = LinearVDP(d, h*(d//h), bias=False, var_init=var_init, tol=tol)
 
     def forward(self, x, var_x, k, var_k, v, var_v):
         q, var_q = self.query(x, var_x)
@@ -123,17 +123,17 @@ class EncoderVDP(nn.Module):
         self.fc    = nn.ModuleList()
         self.norm1 = nn.ModuleList()
         self.norm2 = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0], tol=self.tol))
+        self.emb.append(LinearVDP(d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
         for i in range(len(emb_dim)-1):
-            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], tol=self.tol))
+            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], var_init=param['var_init'], tol=self.tol))
         for i in range(n-1):
             if i != 0:
-                 self.norm1.append(LayerNormVDP(k, tol=param['tol']))
-            self.multi.append(AttentionHeadVDP(h, k, device, self.mode, self.tol))
-            self.norm2.append(LayerNormVDP(k, tol=self.tol))
-            self.fc.append(LinearVDP(k, k, tol=self.tol))
-        self.norm1.append(LayerNormVDP(k, tol=self.tol))
-        self.multi.append(FinalHeadVDP(h, k, self.tol))
+                 self.norm1.append(LayerNormVDP(k, var_init=param['var_init'], tol=param['tol']))
+            self.multi.append(AttentionHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
+            self.norm2.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+            self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
+        self.norm1.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+        self.multi.append(FinalHeadVDP(h, k, param['var_init'], self.tol))
 
     def forward(self, x):
         var_x = torch.zeros_like(x)
@@ -187,18 +187,18 @@ class DecoderVDP(nn.Module):
         self.norm1    = nn.ModuleList()
         self.norm2    = nn.ModuleList()
         self.norm3    = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0], tol=self.tol))
+        self.emb.append(LinearVDP(d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
         for i in range(len(emb_dim)-1):
-            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], tol=self.tol))
+            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], var_init=param['var_init'], tol=self.tol))
         for i in range(n):
             if i != 0:
-                self.norm1.append(LayerNormVDP(k, tol=self.tol))
-            self.multi1.append(AttentionHeadVDP(h, k, device, self.mode, self.tol))
-            self.norm2.append(LayerNormVDP(k, tol=self.tol))
-            self.multi2.append(DecoderHeadVDP(h, k, device, self.mode, self.tol))
-            self.norm3.append(LayerNormVDP(k, tol=self.tol))
-            self.fc.append(LinearVDP(k, k, tol=self.tol))
-        self.fc.append(LinearVDP(k, d, tol=self.tol))
+                self.norm1.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+            self.multi1.append(AttentionHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
+            self.norm2.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+            self.multi2.append(DecoderHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
+            self.norm3.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+            self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
+        self.fc.append(LinearVDP(k, d, var_init=param['var_init'], tol=self.tol))
         self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 

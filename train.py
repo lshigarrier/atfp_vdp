@@ -1,17 +1,18 @@
 import numpy as np
-# import scipy
+import pickle
 import math
-import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 22})
 import time
 import os
 import torch
 from utils import load_yaml, oce, initialize
 from vdp import loss_vdp
+from test import test, save_plot
 
 
 def train(param, device, trainloader, testloader, model, optimizer, epoch):
     loss_list = []
+    nll_list  = []
+    kl_list   = []
     for idx, (x, y) in enumerate(trainloader):
         optimizer.zero_grad()
         x, y = x.to(device), y.to(device)
@@ -19,7 +20,10 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         # Forward pass
         if param['vdp']:
             probs, var_prob = model(x, y)
-            loss = loss_vdp(probs, var_prob, y, model, param, device)
+            nll, kl = loss_vdp(probs, var_prob, y, model, param, device)
+            loss = nll + param['kl_factor']*kl
+            nll_list.append(nll.item())
+            kl_list.append(kl.item())
         else:
             probs = model(x, y)
             loss = oce(probs, y, param, device)
@@ -49,7 +53,8 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
             x, y  = x.to(device), y.to(device)
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
-                loss                 = loss_vdp(prob, var_prob, y, model, param, device)
+                nll, kl              = loss_vdp(prob, var_prob, y, model, param, device)
+                loss = nll + param['kl_factor']*kl
                 # print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
             else:
                 pred, prob = model.inference(x)
@@ -64,7 +69,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         mloss = np.mean(test_list)
         print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
               f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
-    return mloss
+    return mloss, loss_list, nll_list, kl_list
 
 
 def training(param, device, trainloader, testloader, model, optimizer):
@@ -72,9 +77,13 @@ def training(param, device, trainloader, testloader, model, optimizer):
     tac        = time.time()
     best_loss  = float('inf')
     best_epoch = 0
+    loss_full, nll_full, kl_full = [], [], []
     for epoch in range(1, param['epochs'] + 1):
         tic       = time.time()
-        test_loss = train(param, device, trainloader, testloader, model, optimizer, epoch)
+        test_loss, loss_list, nll_list, kl_list = train(param, device, trainloader, testloader, model, optimizer, epoch)
+        loss_full = [*loss_full, *loss_list]
+        nll_full = [*nll_full, *nll_list]
+        kl_full = [*kl_full, *kl_list]
         print(f'Epoch training time (s): {time.time() - tic}')
         if test_loss < best_loss:
             best_loss  = test_loss
@@ -87,6 +96,7 @@ def training(param, device, trainloader, testloader, model, optimizer):
     print(f'Best epoch: {best_epoch}')
     print(f'Best loss: {best_loss:.6f}')
     print(f'Training time (s): {time.time() - tac}')
+    return loss_full, nll_full, kl_full
 
 
 def one_run(param):
@@ -111,7 +121,25 @@ def one_run(param):
     print(f'Max nb of a/c: {trainloader.dataset.max_ac}')
 
     # Training
-    training(param, device, trainloader, testloader, model, optimizer)
+    loss_full, nll_full, kl_full = training(param, device, trainloader, testloader, model, optimizer)
+
+    # Save
+    with open( f'{param["fig_file"]}loss.pickle', 'wb') as f:
+        pickle.dump(loss_full, f)
+    with open( f'{param["fig_file"]}nll.pickle', 'wb') as f:
+        pickle.dump(nll_full, f)
+    with open( f'{param["fig_file"]}kl.pickle', 'wb') as f:
+        pickle.dump(kl_full, f)
+
+    # Test
+    print('Start testing')
+    varis = 0
+    if param['vdp']:
+        preds, truth, varis = test(param, device, testloader, model)
+    else:
+        preds, truth = test(param, device, testloader, model)
+
+    save_plot(param, preds, truth, varis)
 
 
 def main():

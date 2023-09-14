@@ -1,13 +1,9 @@
 import os
 import math
-# import scipy
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from vdp import loss_vdp
 from utils import load_yaml, oce, initialize
-from plots import plot_spot, plot_pred, plot_pred_vdp
 
 
 def test(param, device, testloader, model):
@@ -63,7 +59,8 @@ def test(param, device, testloader, model):
 
             t += pred.shape[0]
             if param['vdp']:
-                loss = loss_vdp(prob, var_prob, y, model, param, device)
+                nll, kl = loss_vdp(prob, var_prob, y, model, param, device)
+                loss = nll + param['kl_factor']*kl
             else:
                 loss = oce(prob, y, param, device)
             test_list.append(loss.item())
@@ -85,6 +82,15 @@ def test(param, device, testloader, model):
             return pred_tensor, true_tensor, var_tensor
         else:
             return pred_tensor, true_tensor
+
+
+def save_plot(param, preds, truth, varis):
+    # Save
+    if param['save_plot']:
+        torch.save(preds, f'{param["fig_file"]}preds.pickle')
+        torch.save(truth, f'{param["fig_file"]}truth.pickle')
+        if param['vdp']:
+            torch.save(varis, f'{param["fig_file"]}varis.pickle')
 
 
 def one_test_run(param):
@@ -111,33 +117,7 @@ def one_test_run(param):
     else:
         preds, truth = test(param, device, testloader, model)
 
-    # Save
-    if param['save_plot']:
-        torch.save(preds, f'{param["fig_file"]}preds.pickle')
-        torch.save(truth, f'{param["fig_file"]}truth.pickle')
-        if param['vdp']:
-            torch.save(varis, f'{param["fig_file"]}varis.pickle')
-
-    # Plot
-    if param['predict_spot']:
-        _ = plot_spot(preds, truth)
-    else:
-        truth_flat = truth.flatten()
-        preds_flat = preds.flatten()
-        mask = truth_flat.ne(-1)
-        truth_flat = truth_flat[mask]
-        preds_flat = preds_flat[mask]
-        cm = confusion_matrix(truth_flat, preds_flat)
-        ConfusionMatrixDisplay(cm).plot()
-        if param['vdp']:
-            _ = plot_pred_vdp(preds, truth, varis, param['nb_classes'])
-        else:
-            _ = plot_pred(preds, truth, param['nb_classes'])
-    # if param['save_plot']:
-    #     with open(f'{param["fig_file"]}.fig.pickle', 'wb') as file:
-    #         pickle.dump(fig, file)
-    plt.show()
-
+    save_plot(param, preds, truth, varis)
 
 def main():
     # Detect anomaly in autograd

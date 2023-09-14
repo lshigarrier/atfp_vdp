@@ -1,11 +1,33 @@
 import numpy as np
 import scipy
+import pickle
 import torch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 22})
 from matplotlib.widgets import Slider
 from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm, Normalize
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from utils import load_yaml
+
+
+def plot_curves(data, legend, title, xlabel, ylabel, xlim=(None, None), ylim=(None, None)):
+    fig, ax = plt.subplots(figsize=(24, 18))
+    add_legend = False
+    for i in range(len(data)):
+        if legend[i] is None:
+            ax.plot(range(1, len(data[i])+1), data[i])
+        else:
+            add_legend = True
+            ax.plot(range(1, len(data[i])+1), data[i], label=legend[i])
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    if add_legend:
+        ax.legend()
+    return fig
 
 
 def plot_spot(preds, truth):
@@ -52,37 +74,37 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     bounds    = np.linspace(0, nb_classes, nb_classes+1)
     norm      = BoundaryNorm(bounds, colors.N)
 
-    fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-    ax[0].set_aspect('equal')
+    fig, ax = plt.subplots(1, 3, figsize=(12, 5), width_ratios=[1, 10, 10])
     ax[1].set_aspect('equal')
+    ax[2].set_aspect('equal')
     plt.subplots_adjust(bottom=0.2)
-    im_pred = ax[0].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
     im_true = ax[1].imshow(mask*truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
-    ax[0].set_xlim(0, nb_lon)
-    ax[0].set_ylim(0, nb_lat)
+    im_pred = ax[2].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
     ax[1].set_xlim(0, nb_lon)
     ax[1].set_ylim(0, nb_lat)
-    ax[0].set_title("Predicted")
+    ax[2].set_xlim(0, nb_lon)
+    ax[2].set_ylim(0, nb_lat)
     ax[1].set_title("True")
+    ax[2].set_title("Predicted")
 
-    axe_bar = fig.add_axes([0.95, 0.1, 0.03, 0.8])
-    mpl.colorbar.ColorbarBase(axe_bar, cmap=cmap, norm=norm,
+    mpl.colorbar.ColorbarBase(ax[0], cmap=cmap, norm=norm,
                               spacing='proportional', ticks=bounds, boundaries=bounds, format='%1i')
+    ax[0].yaxis.set_ticks_position('left')
 
     axe_slider = fig.add_axes([0.1, 0.01, 0.8, 0.05])
     slider     = Slider(axe_slider, 'slider', 0, nb_times - 1, valinit=t_init, valstep=1)
 
     def update_eval(val):
         time = int(slider.val)
-        im_pred.set_data(mask*preds[time, ...])
         im_true.set_data(mask*truth[time, ...])
+        im_pred.set_data(mask*preds[time, ...])
         plt.draw()
 
     slider.on_changed(update_eval)
     return fig, slider
 
 
-def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
+def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
     """
     Plot the predicted congestion, the true congestion, and the variance
     preds: nb_times x nb_lon x nb_lat
@@ -103,39 +125,51 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
     cmap      = LinearSegmentedColormap.from_list('cmap', colorlist, colors.N)
     bounds    = [i for i in range(nb_classes + 1)]
     norm      = BoundaryNorm(bounds, colors.N)
-    norm_var  = Normalize(vmin=varis.min(), vmax=varis.max())
+    if var_range is None:
+        var_min = varis.min()
+        var_max = varis.max()
+    else:
+        var_min = var_range[0]
+        var_max = var_range[1]
+    norm_var  = Normalize(vmin=var_min, vmax=var_max)
 
-    fig, ax = plt.subplots(1, 5, figsize=(17, 5), width_ratios=[1, 10, 10, 10, 1])
+    fig, ax = plt.subplots(1, 6, figsize=(20, 4), width_ratios=[1, 10, 10, 10, 10, 1])
     ax[1].set_aspect('equal')
     ax[2].set_aspect('equal')
     ax[3].set_aspect('equal')
-    im_pred = ax[1].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
-    im_true = ax[2].imshow(mask*truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    ax[4].set_aspect('equal')
+    im_true = ax[1].imshow(mask*truth[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
+    im_pred = ax[2].imshow(mask*preds[t_init, ...], cmap=cmap, norm=norm, aspect="auto")
     im_var  = ax[3].imshow(mask*varis[t_init, ...], cmap='viridis', norm=norm_var, aspect="auto")
+    im_err  = ax[4].imshow(mask*torch.abs(preds[t_init, ...] - truth[t_init, ...]), cmap=cmap, norm=norm, aspect="auto")
     ax[1].set_xlim(0, nb_lon)
     ax[1].set_ylim(0, nb_lat)
     ax[2].set_xlim(0, nb_lon)
     ax[2].set_ylim(0, nb_lat)
     ax[3].set_xlim(0, nb_lon)
     ax[3].set_ylim(0, nb_lat)
-    ax[1].set_title("Predicted")
-    ax[2].set_title("True")
+    ax[4].set_xlim(0, nb_lon)
+    ax[4].set_ylim(0, nb_lat)
+    ax[1].set_title("True")
+    ax[2].set_title("Predicted")
     ax[3].set_title("Variance")
+    ax[4].set_title("Error")
 
     plt.subplots_adjust(bottom=0.2)
     mpl.colorbar.ColorbarBase(ax[0], cmap=cmap, norm=norm,
                               spacing='proportional', ticks=bounds, boundaries=bounds, format='%1i')
     ax[0].yaxis.set_ticks_position('left')
-    mpl.colorbar.ColorbarBase(ax[4], cmap='viridis', norm=norm_var,
-                              ticks=np.linspace(varis.min(), varis.max(), nb_classes+1))
+    mpl.colorbar.ColorbarBase(ax[5], cmap='viridis', norm=norm_var,
+                              ticks=np.linspace(var_min, var_max, nb_classes+1))
     axe_slider = fig.add_axes([0.1, 0.01, 0.8, 0.05])
     slider     = Slider(axe_slider, 'slider', 0, nb_times - 1, valinit=t_init, valstep=1)
 
     def update_eval(val):
         time = int(slider.val)
-        im_pred.set_data(mask*preds[time, ...])
         im_true.set_data(mask*truth[time, ...])
+        im_pred.set_data(mask*preds[time, ...])
         im_var.set_data(mask*varis[time, ...])
+        im_err.set_data(mask*torch.abs(preds[time, ...] - truth[time, ...]))
         plt.draw()
 
     slider.on_changed(update_eval)
@@ -144,15 +178,41 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, t_init=70):
 
 def main():
     param = load_yaml('test_ed')
-    # with open(f'{param["fig_file"]}.fig.pickle', 'rb') as file:
-    #     _ = pickle.load(file)
+
+    # Load data
     preds = torch.load(f'{param["fig_file"]}preds.pickle')
     truth = torch.load(f'{param["fig_file"]}truth.pickle')
+    with open(f'{param["fig_file"]}loss.pickle', 'rb') as f:
+        loss_full = pickle.load(f)
+    with open(f'{param["fig_file"]}nll.pickle', 'rb') as f:
+        nll_full  = pickle.load(f)
+    with open(f'{param["fig_file"]}kl.pickle', 'rb') as f:
+        kl_full   = np.array(pickle.load(f))
+
+    # Plots
+    truth_flat = truth.flatten()
+    preds_flat = preds.flatten()
+    mask = truth_flat.ne(-1)
+    truth_flat = truth_flat[mask]
+    preds_flat = preds_flat[mask]
+    cm = confusion_matrix(truth_flat, preds_flat)
+    ConfusionMatrixDisplay(cm).plot()
+    figs = []
     if param['vdp']:
         varis = torch.load(f'{param["fig_file"]}varis.pickle')
-        _     = plot_pred_vdp(preds, truth, varis, param['nb_classes'])
+        figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
     else:
-        _ = plot_pred(preds, truth, param['nb_classes'])
+        figs.append(plot_pred(preds, truth, param['nb_classes']))
+    print(f'KL factor: {param["kl_factor"]}')
+    figs.append(plot_curves([loss_full], [None], 'Full loss', 'Batch', 'Full loss'))
+    figs.append(plot_curves([nll_full], [None], 'NLL', 'Batch', 'Loss'))
+    figs.append(plot_curves([kl_full], [None], 'KL', 'Batch', 'Loss'))
+    figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Batch', 'Loss'))
+    figs.append(plot_curves([nll_full, kl_full], ['nll', 'kl'], 'NLL and KL', 'Batch', 'Loss'))
+    figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
+                            ['nll', 'factor*kl'], 'NLL and factor*KL', 'Batch', 'Loss'))
+    # with open(f'{param["fig_file"]}.fig.pickle', 'rb') as file:
+    #     _ = pickle.load(file)
     plt.show()
 
 
