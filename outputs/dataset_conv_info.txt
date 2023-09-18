@@ -1,0 +1,111 @@
+name: ed11
+model: weights.pt
+seed: 0
+gpu_number: 2
+load: False
+pretrained: False
+pretrain: pretrain.pt
+save_plot: True
+average: True
+var_range: [0, 1]
+fig_file: models/ed11/
+dim: [6, 4]
+emb: [256]
+vdp: False
+residual: independence
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+kl_factor: 1e-24
+focus: 2
+balance: False
+epochs: 100
+stop: 0.5
+workers: 8
+clip: 10
+tol: 1e-06
+var_init: 1e-24
+path: ./data/20200718_C_CONV.feather
+split_ratio: 0.1
+T_in: 280
+T_out: 40
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 5
+state_dim: 6
+max_ac: 785
+weights: [1.0, 15.0, 15.0, 15.0, 15.0]
+predict_spot: False
+spot: [42, 17, 3]
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Mins
+idac        0.000000
+time       60.000000
+lon        38.977399
+lat        -8.025444
+alt      -600.000000
+speed      81.043198
+head     -179.874900
+vz      -7985.000000
+cong        0.000000
+dtype: float64
+Maxs
+idac      8010.000000
+time     45420.000000
+lon         50.272926
+lat          6.904064
+alt      47000.000000
+speed      530.019811
+head       180.000000
+vz        4924.000000
+cong       146.168758
+dtype: float64
+Max nb of a/c: 785
+Nb of rows: 1328679
+Nb of timestamps: 3025
+Nb of sequences: 2706
+Trainset length: 1288
+Trainset balance
+Class 0: 1876736 ; 78.94%
+Class 1: 125179 ; 5.27%
+Class 2: 125180 ; 5.27%
+Class 3: 125180 ; 5.27%
+Class 4: 125180 ; 5.27%
+Weight 0: 1.00
+Weight 1: 14.99
+Weight 2: 14.99
+Weight 3: 14.99
+Weight 4: 14.99
+Testset length: 142
+Testset balance
+Class 0: 488054 ; 61.34%
+Class 1: 76886 ; 9.66%
+Class 2: 76887 ; 9.66%
+Class 3: 76886 ; 9.66%
+Class 4: 76887 ; 9.66%
+Weight 0: 1.00
+Weight 1: 6.35
+Weight 2: 6.35
+Weight 3: 6.35
+Weight 4: 6.35
+Hot-spots
+idx_lon  idx_lat  idx_alt
+34.0     26.0     3.0        205.472000
+24.0     36.0     3.0        191.633360
+39.0     26.0     3.0        179.278233
+28.0     15.0     3.0        176.628096
+36.0     24.0     3.0        176.317673
+25.0     38.0     3.0        167.827554
+35.0     28.0     3.0        165.479387
+39.0     27.0     3.0        164.911183
+21.0     19.0     3.0        162.859153
+22.0     24.0     3.0        154.297510
+Name: cong, dtype: float64
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.

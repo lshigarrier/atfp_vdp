@@ -1,24 +1,30 @@
 name: vdp9
 model: weights.pt
 seed: 0
-gpu_number: 3
+gpu_number: 2
 load: False
-dim: [6, 4]
-emb: [256]
+pretrained: True
+pretrain: ed9.pt
+save_plot: True
+average: True
+var_range: [0, 1]
+fig_file: models/vdp9/
+dim: [8, 8]
+emb: [512]
 vdp: True
 residual: independence
-batch_size: 32
+batch_size: 8
 optimizer: adam
 learning_rate: 0.001
 l2_reg: 0.0
-kl_factor: 1e-24
-focus: 2
+kl_factor: 0.0
+focus: 3
 balance: False
-epochs: 100
-stop: 0.5
+epochs: 30
+stop: 3
 workers: 8
 clip: 10
-tol: 0.001
+tol: 1e-06
 var_init: 1e-24
 path: ./data/20200718_C_NEW.feather
 split_ratio: 0.1
@@ -35,7 +41,7 @@ predict_spot: False
 spot: [42, 17, 3]
 device: cuda
 Initialize model
-Trainable parameters: 11826572
+Trainable parameters: 46741388
 Preprocessing training set
 Building outputs
 Preprocessing done
@@ -48,588 +54,223 @@ Trainset length: 1288
 Testset length: 142
 Max nb of a/c: 785
 Start training
-Epoch 1: 0/1288 0%, Loss: 18.5361
-Epoch 1: 320/1288 24%, Loss: 8.0803
-Epoch 1: 640/1288 49%, Loss: 5.8798
-Epoch 1: 960/1288 73%, Loss: 4.8665
-Epoch 1: 1256/1288 98%, Loss: 4.2844
-Epoch: 1, Train Loss: 4.284378, Test Loss: 5.636673, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 488.64658546447754
-Epoch 2: 0/1288 0%, Loss: 3.0088
-Epoch 2: 320/1288 24%, Loss: 2.3243
-Epoch 2: 640/1288 49%, Loss: 2.3604
-Epoch 2: 960/1288 73%, Loss: 2.3006
-Epoch 2: 1256/1288 98%, Loss: 2.1474
-Epoch: 2, Train Loss: 2.147440, Test Loss: 4.500275, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 521.6468818187714
-Epoch 3: 0/1288 0%, Loss: 1.8529
-Epoch 3: 320/1288 24%, Loss: 1.8874
-Epoch 3: 640/1288 49%, Loss: 1.7372
-Epoch 3: 960/1288 73%, Loss: 1.7146
-Epoch 3: 1256/1288 98%, Loss: 1.6196
-Epoch: 3, Train Loss: 1.619608, Test Loss: 3.586662, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 497.4814507961273
-Epoch 4: 0/1288 0%, Loss: 1.5248
-Epoch 4: 320/1288 24%, Loss: 1.4290
-Epoch 4: 640/1288 49%, Loss: 1.4267
-Epoch 4: 960/1288 73%, Loss: 1.3693
-Epoch 4: 1256/1288 98%, Loss: 1.2986
-Epoch: 4, Train Loss: 1.298634, Test Loss: 2.996829, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 508.3604521751404
-Epoch 5: 0/1288 0%, Loss: 1.3285
-Epoch 5: 320/1288 24%, Loss: 1.1771
-Epoch 5: 640/1288 49%, Loss: 1.1445
-Epoch 5: 960/1288 73%, Loss: 1.1013
-Epoch 5: 1256/1288 98%, Loss: 1.0675
-Epoch: 5, Train Loss: 1.067471, Test Loss: 2.558056, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 481.669823884964
-Epoch 6: 0/1288 0%, Loss: 0.8610
-Epoch 6: 320/1288 24%, Loss: 0.9328
-Epoch 6: 640/1288 49%, Loss: 0.9466
-Epoch 6: 960/1288 73%, Loss: 0.9074
-Epoch 6: 1256/1288 98%, Loss: 0.9013
-Epoch: 6, Train Loss: 0.901260, Test Loss: 2.258292, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 533.9712135791779
-Epoch 7: 0/1288 0%, Loss: 0.9247
-Epoch 7: 320/1288 24%, Loss: 0.9175
-Epoch 7: 640/1288 49%, Loss: 0.8495
-Epoch 7: 960/1288 73%, Loss: 0.7858
-Epoch 7: 1256/1288 98%, Loss: 0.7817
-Epoch: 7, Train Loss: 0.781701, Test Loss: 1.970136, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 490.43943095207214
-Epoch 8: 0/1288 0%, Loss: 0.7645
-Epoch 8: 320/1288 24%, Loss: 0.7751
-Epoch 8: 640/1288 49%, Loss: 0.7174
-Epoch 8: 960/1288 73%, Loss: 0.6896
-Epoch 8: 1256/1288 98%, Loss: 0.6759
-Epoch: 8, Train Loss: 0.675927, Test Loss: 1.771153, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 477.11960077285767
-Epoch 9: 0/1288 0%, Loss: 0.4598
-Epoch 9: 320/1288 24%, Loss: 0.5677
-Epoch 9: 640/1288 49%, Loss: 0.5922
-Epoch 9: 960/1288 73%, Loss: 0.5756
-Epoch 9: 1256/1288 98%, Loss: 0.5871
-Epoch: 9, Train Loss: 0.587139, Test Loss: 1.632323, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 535.3313627243042
-Epoch 10: 0/1288 0%, Loss: 0.5277
-Epoch 10: 320/1288 24%, Loss: 0.6258
-Epoch 10: 640/1288 49%, Loss: 0.5755
-Epoch 10: 960/1288 73%, Loss: 0.5548
-Epoch 10: 1256/1288 98%, Loss: 0.5297
-Epoch: 10, Train Loss: 0.529748, Test Loss: 1.503717, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 445.59472823143005
-Epoch 11: 0/1288 0%, Loss: 0.6750
-Epoch 11: 320/1288 24%, Loss: 0.4732
-Epoch 11: 640/1288 49%, Loss: 0.4799
-Epoch 11: 960/1288 73%, Loss: 0.4976
-Epoch 11: 1256/1288 98%, Loss: 0.4840
-Epoch: 11, Train Loss: 0.483965, Test Loss: 1.396913, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 445.296434879303
-Epoch 12: 0/1288 0%, Loss: 0.5842
-Epoch 12: 320/1288 24%, Loss: 0.4834
-Epoch 12: 640/1288 49%, Loss: 0.4726
-Epoch 12: 960/1288 73%, Loss: 0.4451
-Epoch 12: 1256/1288 98%, Loss: 0.4287
-Epoch: 12, Train Loss: 0.428706, Test Loss: 1.312467, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 464.7412075996399
-Epoch 13: 0/1288 0%, Loss: 0.5557
-Epoch 13: 320/1288 24%, Loss: 0.4028
-Epoch 13: 640/1288 49%, Loss: 0.4299
-Epoch 13: 960/1288 73%, Loss: 0.4049
-Epoch 13: 1256/1288 98%, Loss: 0.4055
-Epoch: 13, Train Loss: 0.405508, Test Loss: 1.189525, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 522.1125514507294
-Epoch 14: 0/1288 0%, Loss: 0.5037
-Epoch 14: 320/1288 24%, Loss: 0.3647
-Epoch 14: 640/1288 49%, Loss: 0.3500
-Epoch 14: 960/1288 73%, Loss: 0.3521
-Epoch 14: 1256/1288 98%, Loss: 0.3529
-Epoch: 14, Train Loss: 0.352947, Test Loss: 1.121764, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 495.4224851131439
-Epoch 15: 0/1288 0%, Loss: 0.3853
-Epoch 15: 320/1288 24%, Loss: 0.3171
-Epoch 15: 640/1288 49%, Loss: 0.3238
-Epoch 15: 960/1288 73%, Loss: 0.3229
-Epoch 15: 1256/1288 98%, Loss: 0.3194
-Epoch: 15, Train Loss: 0.319417, Test Loss: 1.073866, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 502.2716839313507
-Epoch 16: 0/1288 0%, Loss: 0.3559
-Epoch 16: 320/1288 24%, Loss: 0.2796
-Epoch 16: 640/1288 49%, Loss: 0.2778
-Epoch 16: 960/1288 73%, Loss: 0.2796
-Epoch 16: 1256/1288 98%, Loss: 0.2826
-Epoch: 16, Train Loss: 0.282640, Test Loss: 0.978872, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 507.1891293525696
-Epoch 17: 0/1288 0%, Loss: 0.1528
-Epoch 17: 320/1288 24%, Loss: 0.2329
-Epoch 17: 640/1288 49%, Loss: 0.2313
-Epoch 17: 960/1288 73%, Loss: 0.2431
-Epoch 17: 1256/1288 98%, Loss: 0.2568
-Epoch: 17, Train Loss: 0.256820, Test Loss: 0.920006, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 435.3091633319855
-Epoch 18: 0/1288 0%, Loss: 0.0882
-Epoch 18: 320/1288 24%, Loss: 0.2665
-Epoch 18: 640/1288 49%, Loss: 0.2433
-Epoch 18: 960/1288 73%, Loss: 0.2330
-Epoch 18: 1256/1288 98%, Loss: 0.2262
-Epoch: 18, Train Loss: 0.226215, Test Loss: 0.867888, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 493.7027349472046
-Epoch 19: 0/1288 0%, Loss: 0.2253
-Epoch 19: 320/1288 24%, Loss: 0.2422
-Epoch 19: 640/1288 49%, Loss: 0.2322
-Epoch 19: 960/1288 73%, Loss: 0.2145
-Epoch 19: 1256/1288 98%, Loss: 0.2040
-Epoch: 19, Train Loss: 0.203989, Test Loss: 0.803274, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 519.5605714321136
-Epoch 20: 0/1288 0%, Loss: 0.1567
-Epoch 20: 320/1288 24%, Loss: 0.1979
-Epoch 20: 640/1288 49%, Loss: 0.1938
-Epoch 20: 960/1288 73%, Loss: 0.1755
-Epoch 20: 1256/1288 98%, Loss: 0.1785
-Epoch: 20, Train Loss: 0.178541, Test Loss: 0.764018, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 476.6386353969574
-Epoch 21: 0/1288 0%, Loss: 0.1320
-Epoch 21: 320/1288 24%, Loss: 0.1455
-Epoch 21: 640/1288 49%, Loss: 0.1649
-Epoch 21: 960/1288 73%, Loss: 0.1647
-Epoch 21: 1256/1288 98%, Loss: 0.1595
-Epoch: 21, Train Loss: 0.159535, Test Loss: 0.719393, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 511.5095920562744
-Epoch 22: 0/1288 0%, Loss: 0.0997
-Epoch 22: 320/1288 24%, Loss: 0.1434
-Epoch 22: 640/1288 49%, Loss: 0.1474
-Epoch 22: 960/1288 73%, Loss: 0.1392
-Epoch 22: 1256/1288 98%, Loss: 0.1395
-Epoch: 22, Train Loss: 0.139534, Test Loss: 0.680547, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 544.5303723812103
-Epoch 23: 0/1288 0%, Loss: 0.3121
-Epoch 23: 320/1288 24%, Loss: 0.1400
-Epoch 23: 640/1288 49%, Loss: 0.1279
-Epoch 23: 960/1288 73%, Loss: 0.1278
-Epoch 23: 1256/1288 98%, Loss: 0.1265
-Epoch: 23, Train Loss: 0.126505, Test Loss: 0.639579, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 482.04417991638184
-Epoch 24: 0/1288 0%, Loss: -0.0718
-Epoch 24: 320/1288 24%, Loss: 0.0851
-Epoch 24: 640/1288 49%, Loss: 0.1087
-Epoch 24: 960/1288 73%, Loss: 0.1049
-Epoch 24: 1256/1288 98%, Loss: 0.1018
-Epoch: 24, Train Loss: 0.101845, Test Loss: 0.612045, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 474.995285987854
-Epoch 25: 0/1288 0%, Loss: -0.0093
-Epoch 25: 320/1288 24%, Loss: 0.0891
-Epoch 25: 640/1288 49%, Loss: 0.0924
-Epoch 25: 960/1288 73%, Loss: 0.0824
-Epoch 25: 1256/1288 98%, Loss: 0.0821
-Epoch: 25, Train Loss: 0.082127, Test Loss: 0.578330, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 339.3464741706848
-Epoch 26: 0/1288 0%, Loss: 0.0869
-Epoch 26: 320/1288 24%, Loss: 0.1077
-Epoch 26: 640/1288 49%, Loss: 0.0934
-Epoch 26: 960/1288 73%, Loss: 0.0793
-Epoch 26: 1256/1288 98%, Loss: 0.0712
-Epoch: 26, Train Loss: 0.071170, Test Loss: 0.562189, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 385.1036972999573
-Epoch 27: 0/1288 0%, Loss: -0.0307
-Epoch 27: 320/1288 24%, Loss: 0.1018
-Epoch 27: 640/1288 49%, Loss: 0.0682
-Epoch 27: 960/1288 73%, Loss: 0.0540
-Epoch 27: 1256/1288 98%, Loss: 0.0528
-Epoch: 27, Train Loss: 0.052779, Test Loss: 0.536790, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 365.3532519340515
-Epoch 28: 0/1288 0%, Loss: 0.2069
-Epoch 28: 320/1288 24%, Loss: 0.0754
-Epoch 28: 640/1288 49%, Loss: 0.0455
-Epoch 28: 960/1288 73%, Loss: 0.0396
-Epoch 28: 1256/1288 98%, Loss: 0.0371
-Epoch: 28, Train Loss: 0.037067, Test Loss: 0.542765, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 363.5623462200165
-Epoch 29: 0/1288 0%, Loss: 0.1120
-Epoch 29: 320/1288 24%, Loss: 0.0509
-Epoch 29: 640/1288 49%, Loss: 0.0274
-Epoch 29: 960/1288 73%, Loss: 0.0327
-Epoch 29: 1256/1288 98%, Loss: 0.0218
-Epoch: 29, Train Loss: 0.021765, Test Loss: 0.543431, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 372.68610644340515
-Epoch 30: 0/1288 0%, Loss: -0.0175
-Epoch 30: 320/1288 24%, Loss: 0.0442
-Epoch 30: 640/1288 49%, Loss: 0.0238
-Epoch 30: 960/1288 73%, Loss: 0.0147
-Epoch 30: 1256/1288 98%, Loss: 0.0139
-Epoch: 30, Train Loss: 0.013886, Test Loss: 0.483835, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 395.9455485343933
-Epoch 31: 0/1288 0%, Loss: -0.0056
-Epoch 31: 320/1288 24%, Loss: 0.0076
-Epoch 31: 640/1288 49%, Loss: 0.0178
-Epoch 31: 960/1288 73%, Loss: 0.0122
-Epoch 31: 1256/1288 98%, Loss: 0.0044
-Epoch: 31, Train Loss: 0.004435, Test Loss: 0.474178, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 359.38348484039307
-Epoch 32: 0/1288 0%, Loss: -0.0638
-Epoch 32: 320/1288 24%, Loss: -0.0025
-Epoch 32: 640/1288 49%, Loss: -0.0064
-Epoch 32: 960/1288 73%, Loss: -0.0103
-Epoch 32: 1256/1288 98%, Loss: -0.0119
-Epoch: 32, Train Loss: -0.011941, Test Loss: 0.529285, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 355.39620995521545
-Epoch 33: 0/1288 0%, Loss: -0.0284
-Epoch 33: 320/1288 24%, Loss: -0.0299
-Epoch 33: 640/1288 49%, Loss: -0.0062
-Epoch 33: 960/1288 73%, Loss: -0.0098
-Epoch 33: 1256/1288 98%, Loss: -0.0175
-Epoch: 33, Train Loss: -0.017458, Test Loss: 0.486985, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 368.24292755126953
-Epoch 34: 0/1288 0%, Loss: -0.0057
-Epoch 34: 320/1288 24%, Loss: -0.0552
-Epoch 34: 640/1288 49%, Loss: -0.0477
-Epoch 34: 960/1288 73%, Loss: -0.0311
-Epoch 34: 1256/1288 98%, Loss: -0.0275
-Epoch: 34, Train Loss: -0.027525, Test Loss: 0.458640, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 353.9286117553711
-Epoch 35: 0/1288 0%, Loss: -0.1281
-Epoch 35: 320/1288 24%, Loss: -0.0344
-Epoch 35: 640/1288 49%, Loss: -0.0189
-Epoch 35: 960/1288 73%, Loss: -0.0302
-Epoch 35: 1256/1288 98%, Loss: -0.0406
-Epoch: 35, Train Loss: -0.040557, Test Loss: 0.436567, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 374.4088158607483
-Epoch 36: 0/1288 0%, Loss: -0.0818
-Epoch 36: 320/1288 24%, Loss: -0.0191
-Epoch 36: 640/1288 49%, Loss: -0.0335
-Epoch 36: 960/1288 73%, Loss: -0.0303
-Epoch 36: 1256/1288 98%, Loss: -0.0421
-Epoch: 36, Train Loss: -0.042112, Test Loss: 0.432340, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 352.69755363464355
-Epoch 37: 0/1288 0%, Loss: -0.0342
-Epoch 37: 320/1288 24%, Loss: -0.0638
-Epoch 37: 640/1288 49%, Loss: -0.0538
-Epoch 37: 960/1288 73%, Loss: -0.0430
-Epoch 37: 1256/1288 98%, Loss: -0.0498
-Epoch: 37, Train Loss: -0.049790, Test Loss: 0.410660, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 337.79892110824585
-Epoch 38: 0/1288 0%, Loss: -0.0412
-Epoch 38: 320/1288 24%, Loss: -0.0509
-Epoch 38: 640/1288 49%, Loss: -0.0506
-Epoch 38: 960/1288 73%, Loss: -0.0625
-Epoch 38: 1256/1288 98%, Loss: -0.0600
-Epoch: 38, Train Loss: -0.060027, Test Loss: 0.440897, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 374.32703948020935
-Epoch 39: 0/1288 0%, Loss: -0.1128
-Epoch 39: 320/1288 24%, Loss: -0.0714
-Epoch 39: 640/1288 49%, Loss: -0.0559
-Epoch 39: 960/1288 73%, Loss: -0.0645
-Epoch 39: 1256/1288 98%, Loss: -0.0668
-Epoch: 39, Train Loss: -0.066834, Test Loss: 0.422933, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 373.8957588672638
-Epoch 40: 0/1288 0%, Loss: -0.0299
-Epoch 40: 320/1288 24%, Loss: -0.0542
-Epoch 40: 640/1288 49%, Loss: -0.0693
-Epoch 40: 960/1288 73%, Loss: -0.0743
-Epoch 40: 1256/1288 98%, Loss: -0.0770
-Epoch: 40, Train Loss: -0.077029, Test Loss: 0.388530, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 379.5100209712982
-Epoch 41: 0/1288 0%, Loss: -0.0815
-Epoch 41: 320/1288 24%, Loss: -0.1024
-Epoch 41: 640/1288 49%, Loss: -0.0998
-Epoch 41: 960/1288 73%, Loss: -0.0859
-Epoch 41: 1256/1288 98%, Loss: -0.0760
-Epoch: 41, Train Loss: -0.075981, Test Loss: 0.385281, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 342.97451162338257
-Epoch 42: 0/1288 0%, Loss: -0.0972
-Epoch 42: 320/1288 24%, Loss: -0.0798
-Epoch 42: 640/1288 49%, Loss: -0.0832
-Epoch 42: 960/1288 73%, Loss: -0.0855
-Epoch 42: 1256/1288 98%, Loss: -0.0788
-Epoch: 42, Train Loss: -0.078803, Test Loss: 0.371332, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 461.47287464141846
-Epoch 43: 0/1288 0%, Loss: -0.0819
-Epoch 43: 320/1288 24%, Loss: -0.0837
-Epoch 43: 640/1288 49%, Loss: -0.1168
-Epoch 43: 960/1288 73%, Loss: -0.0937
-Epoch 43: 1256/1288 98%, Loss: -0.0884
-Epoch: 43, Train Loss: -0.088365, Test Loss: 0.425816, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 365.12745928764343
-Epoch 44: 0/1288 0%, Loss: -0.0325
-Epoch 44: 320/1288 24%, Loss: -0.1049
-Epoch 44: 640/1288 49%, Loss: -0.0900
-Epoch 44: 960/1288 73%, Loss: -0.0787
-Epoch 44: 1256/1288 98%, Loss: -0.0759
-Epoch: 44, Train Loss: -0.075885, Test Loss: 0.349682, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 439.3426995277405
-Epoch 45: 0/1288 0%, Loss: -0.0174
-Epoch 45: 320/1288 24%, Loss: -0.0908
-Epoch 45: 640/1288 49%, Loss: -0.0862
-Epoch 45: 960/1288 73%, Loss: -0.0889
-Epoch 45: 1256/1288 98%, Loss: -0.1012
-Epoch: 45, Train Loss: -0.101187, Test Loss: 0.378540, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 403.1477384567261
-Epoch 46: 0/1288 0%, Loss: -0.0708
-Epoch 46: 320/1288 24%, Loss: -0.1236
-Epoch 46: 640/1288 49%, Loss: -0.1219
-Epoch 46: 960/1288 73%, Loss: -0.1131
-Epoch 46: 1256/1288 98%, Loss: -0.1117
-Epoch: 46, Train Loss: -0.111726, Test Loss: 0.364657, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 427.40450954437256
-Epoch 47: 0/1288 0%, Loss: -0.1382
-Epoch 47: 320/1288 24%, Loss: -0.0777
-Epoch 47: 640/1288 49%, Loss: -0.0993
-Epoch 47: 960/1288 73%, Loss: -0.1099
-Epoch 47: 1256/1288 98%, Loss: -0.1142
-Epoch: 47, Train Loss: -0.114221, Test Loss: 0.348474, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 437.13783383369446
-Epoch 48: 0/1288 0%, Loss: -0.1803
-Epoch 48: 320/1288 24%, Loss: -0.1177
-Epoch 48: 640/1288 49%, Loss: -0.1071
-Epoch 48: 960/1288 73%, Loss: -0.1002
-Epoch 48: 1256/1288 98%, Loss: -0.1076
-Epoch: 48, Train Loss: -0.107614, Test Loss: 0.345312, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 396.1638038158417
-Epoch 49: 0/1288 0%, Loss: -0.0951
-Epoch 49: 320/1288 24%, Loss: -0.0964
-Epoch 49: 640/1288 49%, Loss: -0.0976
-Epoch 49: 960/1288 73%, Loss: -0.1058
-Epoch 49: 1256/1288 98%, Loss: -0.1097
-Epoch: 49, Train Loss: -0.109655, Test Loss: 0.365693, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 410.9503014087677
-Epoch 50: 0/1288 0%, Loss: -0.0902
-Epoch 50: 320/1288 24%, Loss: -0.1261
-Epoch 50: 640/1288 49%, Loss: -0.1269
-Epoch 50: 960/1288 73%, Loss: -0.1167
-Epoch 50: 1256/1288 98%, Loss: -0.1187
-Epoch: 50, Train Loss: -0.118731, Test Loss: 0.357403, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 414.03211975097656
-Epoch 51: 0/1288 0%, Loss: -0.1051
-Epoch 51: 320/1288 24%, Loss: -0.1141
-Epoch 51: 640/1288 49%, Loss: -0.1138
-Epoch 51: 960/1288 73%, Loss: -0.1241
-Epoch 51: 1256/1288 98%, Loss: -0.1214
-Epoch: 51, Train Loss: -0.121388, Test Loss: 0.355422, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 363.90944647789
-Epoch 52: 0/1288 0%, Loss: -0.0588
-Epoch 52: 320/1288 24%, Loss: -0.1214
-Epoch 52: 640/1288 49%, Loss: -0.1211
-Epoch 52: 960/1288 73%, Loss: -0.1216
-Epoch 52: 1256/1288 98%, Loss: -0.1249
-Epoch: 52, Train Loss: -0.124877, Test Loss: 0.366667, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 411.1765172481537
-Epoch 53: 0/1288 0%, Loss: -0.1377
-Epoch 53: 320/1288 24%, Loss: -0.1237
-Epoch 53: 640/1288 49%, Loss: -0.1277
-Epoch 53: 960/1288 73%, Loss: -0.1311
-Epoch 53: 1256/1288 98%, Loss: -0.1292
-Epoch: 53, Train Loss: -0.129177, Test Loss: 0.343817, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 396.18228912353516
-Epoch 54: 0/1288 0%, Loss: -0.1258
-Epoch 54: 320/1288 24%, Loss: -0.1815
-Epoch 54: 640/1288 49%, Loss: -0.1397
-Epoch 54: 960/1288 73%, Loss: -0.1298
-Epoch 54: 1256/1288 98%, Loss: -0.1363
-Epoch: 54, Train Loss: -0.136329, Test Loss: 0.328118, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 367.35850524902344
-Epoch 55: 0/1288 0%, Loss: -0.1410
-Epoch 55: 320/1288 24%, Loss: -0.1211
-Epoch 55: 640/1288 49%, Loss: -0.1255
-Epoch 55: 960/1288 73%, Loss: -0.1349
-Epoch 55: 1256/1288 98%, Loss: -0.1380
-Epoch: 55, Train Loss: -0.138047, Test Loss: 0.337497, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 398.22782945632935
-Epoch 56: 0/1288 0%, Loss: -0.2432
-Epoch 56: 320/1288 24%, Loss: -0.1353
-Epoch 56: 640/1288 49%, Loss: -0.1481
-Epoch 56: 960/1288 73%, Loss: -0.1425
-Epoch 56: 1256/1288 98%, Loss: -0.1375
-Epoch: 56, Train Loss: -0.137472, Test Loss: 0.317179, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 372.394170999527
-Epoch 57: 0/1288 0%, Loss: -0.2401
-Epoch 57: 320/1288 24%, Loss: -0.1507
-Epoch 57: 640/1288 49%, Loss: -0.1563
-Epoch 57: 960/1288 73%, Loss: -0.1504
-Epoch 57: 1256/1288 98%, Loss: -0.1406
-Epoch: 57, Train Loss: -0.140561, Test Loss: 0.389043, Accuracy: 25.14%, RMSE: 1.3294
-Epoch training time (s): 367.3669557571411
-Epoch 58: 0/1288 0%, Loss: -0.0392
-Epoch 58: 320/1288 24%, Loss: -0.1247
-Epoch 58: 640/1288 49%, Loss: -0.1092
-Epoch 58: 960/1288 73%, Loss: -0.1141
-Epoch 58: 1256/1288 98%, Loss: -0.1249
-Epoch: 58, Train Loss: -0.124884, Test Loss: 0.319344, Accuracy: 25.14%, RMSE: 1.3321
-Epoch training time (s): 375.84381437301636
-Epoch 59: 0/1288 0%, Loss: -0.2712
-Epoch 59: 320/1288 24%, Loss: -0.1543
-Epoch 59: 640/1288 49%, Loss: -0.1504
-Epoch 59: 960/1288 73%, Loss: -0.1567
-Epoch 59: 1256/1288 98%, Loss: -0.1506
-Epoch: 59, Train Loss: -0.150631, Test Loss: 0.374074, Accuracy: 25.14%, RMSE: 1.3308
-Epoch training time (s): 381.8322706222534
-Epoch 60: 0/1288 0%, Loss: -0.1588
-Epoch 60: 320/1288 24%, Loss: -0.1331
-Epoch 60: 640/1288 49%, Loss: -0.1509
-Epoch 60: 960/1288 73%, Loss: -0.1584
-Epoch 60: 1256/1288 98%, Loss: -0.1589
-Epoch: 60, Train Loss: -0.158940, Test Loss: 0.358295, Accuracy: 25.14%, RMSE: 1.3321
-Epoch training time (s): 357.13718700408936
-Epoch 61: 0/1288 0%, Loss: -0.2038
-Epoch 61: 320/1288 24%, Loss: -0.1453
-Epoch 61: 640/1288 49%, Loss: -0.1481
-Epoch 61: 960/1288 73%, Loss: -0.1437
-Epoch 61: 1256/1288 98%, Loss: -0.1412
-Epoch: 61, Train Loss: -0.141215, Test Loss: 0.358741, Accuracy: 25.14%, RMSE: 1.3290
-Epoch training time (s): 376.7031714916229
-Epoch 62: 0/1288 0%, Loss: -0.2249
-Epoch 62: 320/1288 24%, Loss: -0.1382
-Epoch 62: 640/1288 49%, Loss: -0.1446
-Epoch 62: 960/1288 73%, Loss: -0.1468
-Epoch 62: 1256/1288 98%, Loss: -0.1574
-Epoch: 62, Train Loss: -0.157353, Test Loss: 0.355626, Accuracy: 25.14%, RMSE: 1.3289
-Epoch training time (s): 363.58295249938965
-Epoch 63: 0/1288 0%, Loss: -0.1047
-Epoch 63: 320/1288 24%, Loss: -0.1600
-Epoch 63: 640/1288 49%, Loss: -0.1661
-Epoch 63: 960/1288 73%, Loss: -0.1675
-Epoch 63: 1256/1288 98%, Loss: -0.1661
-Epoch: 63, Train Loss: -0.166114, Test Loss: 0.326729, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 373.309609413147
-Epoch 64: 0/1288 0%, Loss: -0.2437
-Epoch 64: 320/1288 24%, Loss: -0.1628
-Epoch 64: 640/1288 49%, Loss: -0.1848
-Epoch 64: 960/1288 73%, Loss: -0.1721
-Epoch 64: 1256/1288 98%, Loss: -0.1706
-Epoch: 64, Train Loss: -0.170620, Test Loss: 0.328085, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 321.05102038383484
-Epoch 65: 0/1288 0%, Loss: -0.1532
-Epoch 65: 320/1288 24%, Loss: -0.1522
-Epoch 65: 640/1288 49%, Loss: -0.1732
-Epoch 65: 960/1288 73%, Loss: -0.1586
-Epoch 65: 1256/1288 98%, Loss: -0.1552
-Epoch: 65, Train Loss: -0.155242, Test Loss: 0.323154, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 326.4645781517029
-Epoch 66: 0/1288 0%, Loss: -0.1583
-Epoch 66: 320/1288 24%, Loss: -0.1531
-Epoch 66: 640/1288 49%, Loss: -0.1574
-Epoch 66: 960/1288 73%, Loss: -0.1660
-Epoch 66: 1256/1288 98%, Loss: -0.1637
-Epoch: 66, Train Loss: -0.163706, Test Loss: 0.318668, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 311.07505655288696
-Epoch 67: 0/1288 0%, Loss: -0.1698
-Epoch 67: 320/1288 24%, Loss: -0.1646
-Epoch 67: 640/1288 49%, Loss: -0.1529
-Epoch 67: 960/1288 73%, Loss: -0.1538
-Epoch 67: 1256/1288 98%, Loss: -0.1456
-Epoch: 67, Train Loss: -0.145615, Test Loss: 0.424753, Accuracy: 25.14%, RMSE: 1.3322
-Epoch training time (s): 381.3938865661621
-Epoch 68: 0/1288 0%, Loss: -0.0059
-Epoch 68: 320/1288 24%, Loss: -0.0197
-Epoch 68: 640/1288 49%, Loss: -0.0440
-Epoch 68: 960/1288 73%, Loss: -0.0622
-Epoch 68: 1256/1288 98%, Loss: -0.0738
-Epoch: 68, Train Loss: -0.073844, Test Loss: 0.280960, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 376.54484963417053
-Epoch 69: 0/1288 0%, Loss: -0.1631
-Epoch 69: 320/1288 24%, Loss: -0.1324
-Epoch 69: 640/1288 49%, Loss: -0.1249
-Epoch 69: 960/1288 73%, Loss: -0.1225
-Epoch 69: 1256/1288 98%, Loss: -0.1238
-Epoch: 69, Train Loss: -0.123793, Test Loss: 0.286164, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 368.289998292923
-Epoch 70: 0/1288 0%, Loss: -0.2633
-Epoch 70: 320/1288 24%, Loss: -0.1319
-Epoch 70: 640/1288 49%, Loss: -0.1374
-Epoch 70: 960/1288 73%, Loss: -0.1514
-Epoch 70: 1256/1288 98%, Loss: -0.1466
-Epoch: 70, Train Loss: -0.146568, Test Loss: 0.367651, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 357.68122935295105
-Epoch 71: 0/1288 0%, Loss: -0.1132
-Epoch 71: 320/1288 24%, Loss: -0.1404
-Epoch 71: 640/1288 49%, Loss: -0.1550
-Epoch 71: 960/1288 73%, Loss: -0.1571
-Epoch 71: 1256/1288 98%, Loss: -0.1583
-Epoch: 71, Train Loss: -0.158336, Test Loss: 0.367213, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 398.6196162700653
-Epoch 72: 0/1288 0%, Loss: -0.1863
-Epoch 72: 320/1288 24%, Loss: -0.1668
-Epoch 72: 640/1288 49%, Loss: -0.1805
-Epoch 72: 960/1288 73%, Loss: -0.1717
-Epoch 72: 1256/1288 98%, Loss: -0.1749
-Epoch: 72, Train Loss: -0.174908, Test Loss: 0.332503, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 373.52863240242004
-Epoch 73: 0/1288 0%, Loss: -0.1614
-Epoch 73: 320/1288 24%, Loss: -0.1737
-Epoch 73: 640/1288 49%, Loss: -0.1632
-Epoch 73: 960/1288 73%, Loss: -0.1697
-Epoch 73: 1256/1288 98%, Loss: -0.1686
-Epoch: 73, Train Loss: -0.168599, Test Loss: 0.354363, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 349.25880670547485
-Epoch 74: 0/1288 0%, Loss: -0.2148
-Epoch 74: 320/1288 24%, Loss: -0.1711
-Epoch 74: 640/1288 49%, Loss: -0.1790
-Epoch 74: 960/1288 73%, Loss: -0.1752
-Epoch 74: 1256/1288 98%, Loss: -0.1636
-Epoch: 74, Train Loss: -0.163642, Test Loss: 0.331269, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 366.34443712234497
-Epoch 75: 0/1288 0%, Loss: -0.0668
-Epoch 75: 320/1288 24%, Loss: -0.1140
-Epoch 75: 640/1288 49%, Loss: -0.1236
-Epoch 75: 960/1288 73%, Loss: -0.1430
-Epoch 75: 1256/1288 98%, Loss: -0.1533
-Epoch: 75, Train Loss: -0.153318, Test Loss: 0.354598, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 350.7277202606201
-Epoch 76: 0/1288 0%, Loss: -0.1375
-Epoch 76: 320/1288 24%, Loss: -0.1712
-Epoch 76: 640/1288 49%, Loss: -0.1699
-Epoch 76: 960/1288 73%, Loss: -0.1843
-Epoch 76: 1256/1288 98%, Loss: -0.1882
-Epoch: 76, Train Loss: -0.188162, Test Loss: 0.413242, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 386.06574630737305
-Epoch 77: 0/1288 0%, Loss: -0.1832
-Epoch 77: 320/1288 24%, Loss: -0.1995
-Epoch 77: 640/1288 49%, Loss: -0.1851
-Epoch 77: 960/1288 73%, Loss: -0.1849
-Epoch 77: 1256/1288 98%, Loss: -0.1840
-Epoch: 77, Train Loss: -0.184011, Test Loss: 0.404096, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 385.0335502624512
-Epoch 78: 0/1288 0%, Loss: -0.1030
-Epoch 78: 320/1288 24%, Loss: -0.1932
-Epoch 78: 640/1288 49%, Loss: -0.1820
-Epoch 78: 960/1288 73%, Loss: -0.1796
-Epoch 78: 1256/1288 98%, Loss: -0.1772
-Epoch: 78, Train Loss: -0.177202, Test Loss: 0.364572, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 341.959365606308
-Epoch 79: 0/1288 0%, Loss: -0.1563
-Epoch 79: 320/1288 24%, Loss: -0.1810
-Epoch 79: 640/1288 49%, Loss: -0.1837
-Epoch 79: 960/1288 73%, Loss: -0.1778
-Epoch 79: 1256/1288 98%, Loss: -0.1784
-Epoch: 79, Train Loss: -0.178389, Test Loss: 0.332866, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 377.2120018005371
-Epoch 80: 0/1288 0%, Loss: -0.2278
-Epoch 80: 320/1288 24%, Loss: -0.1703
-Epoch 80: 640/1288 49%, Loss: -0.1811
-Epoch 80: 960/1288 73%, Loss: -0.1870
-Epoch 80: 1256/1288 98%, Loss: -0.1821
-Epoch: 80, Train Loss: -0.182147, Test Loss: 0.373212, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 357.7443091869354
-Epoch 81: 0/1288 0%, Loss: -0.1872
-Epoch 81: 320/1288 24%, Loss: -0.1776
-Epoch 81: 640/1288 49%, Loss: -0.1742
-Epoch 81: 960/1288 73%, Loss: -0.1853
-Epoch 81: 1256/1288 98%, Loss: -0.1822
-Epoch: 81, Train Loss: -0.182225, Test Loss: 0.385448, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 354.98203778266907
-Epoch 82: 0/1288 0%, Loss: -0.2348
-Epoch 82: 320/1288 24%, Loss: -0.1641
-Epoch 82: 640/1288 49%, Loss: -0.1651
-Epoch 82: 960/1288 73%, Loss: -0.1673
-Epoch 82: 1256/1288 98%, Loss: -0.1594
-Epoch: 82, Train Loss: -0.159393, Test Loss: 0.367961, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 398.37936210632324
-Epoch 83: 0/1288 0%, Loss: -0.1267
-Epoch 83: 320/1288 24%, Loss: -0.1803
-Epoch 83: 640/1288 49%, Loss: -0.1713
-Epoch 83: 960/1288 73%, Loss: -0.1777
-Epoch 83: 1256/1288 98%, Loss: -0.1795
-Epoch: 83, Train Loss: -0.179532, Test Loss: 0.530455, Accuracy: 25.14%, RMSE: 1.3286
-Epoch training time (s): 384.5822033882141
-Early stopping
-Best epoch: 68
-Best loss: 0.280960
-Training time (s): 34007.84607696533
+Epoch 1: 0/1288 0%, Loss: 29.6949
+Epoch 1: 320/1288 25%, Loss: 25.7228
+Epoch 1: 640/1288 50%, Loss: 24.7846
+Epoch 1: 960/1288 75%, Loss: 24.3587
+Epoch 1: 1280/1288 99%, Loss: 24.2250
+Epoch: 1, Train Loss: 24.225013, Test Loss: 43.262323, Accuracy: 19.80%, RMSE: 1.2520
+Epoch training time (s): 525.7850136756897
+Epoch 2: 0/1288 0%, Loss: 20.0263
+Epoch 2: 320/1288 25%, Loss: 23.8474
+Epoch 2: 640/1288 50%, Loss: 23.9157
+Epoch 2: 960/1288 75%, Loss: 23.5277
+Epoch 2: 1280/1288 99%, Loss: 23.1891
+Epoch: 2, Train Loss: 23.189138, Test Loss: 41.716078, Accuracy: 20.72%, RMSE: 1.3265
+Epoch training time (s): 511.95214772224426
+Epoch 3: 0/1288 0%, Loss: 13.8700
+Epoch 3: 320/1288 25%, Loss: 21.4910
+Epoch 3: 640/1288 50%, Loss: 21.9034
+Epoch 3: 960/1288 75%, Loss: 21.3968
+Epoch 3: 1280/1288 99%, Loss: 21.2376
+Epoch: 3, Train Loss: 21.237638, Test Loss: 38.776063, Accuracy: 21.91%, RMSE: 1.4509
+Epoch training time (s): 524.5803210735321
+Epoch 4: 0/1288 0%, Loss: 20.5657
+Epoch 4: 320/1288 25%, Loss: 19.5561
+Epoch 4: 640/1288 50%, Loss: 19.7247
+Epoch 4: 960/1288 75%, Loss: 19.1077
+Epoch 4: 1280/1288 99%, Loss: 18.7541
+Epoch: 4, Train Loss: 18.754123, Test Loss: 34.977358, Accuracy: 21.21%, RMSE: 1.4887
+Epoch training time (s): 516.2621459960938
+Epoch 5: 0/1288 0%, Loss: 26.6957
+Epoch 5: 320/1288 25%, Loss: 18.9743
+Epoch 5: 640/1288 50%, Loss: 18.3290
+Epoch 5: 960/1288 75%, Loss: 17.8054
+Epoch 5: 1280/1288 99%, Loss: 17.6326
+Epoch: 5, Train Loss: 17.632628, Test Loss: 33.156536, Accuracy: 18.62%, RMSE: 1.4018
+Epoch training time (s): 515.6754848957062
+Epoch 6: 0/1288 0%, Loss: 17.0495
+Epoch 6: 320/1288 25%, Loss: 17.3253
+Epoch 6: 640/1288 50%, Loss: 16.9141
+Epoch 6: 960/1288 75%, Loss: 17.0070
+Epoch 6: 1280/1288 99%, Loss: 16.9210
+Epoch: 6, Train Loss: 16.920960, Test Loss: 31.504904, Accuracy: 19.71%, RMSE: 1.3723
+Epoch training time (s): 499.24916982650757
+Epoch 7: 0/1288 0%, Loss: 15.4052
+Epoch 7: 320/1288 25%, Loss: 16.0382
+Epoch 7: 640/1288 50%, Loss: 16.0805
+Epoch 7: 960/1288 75%, Loss: 16.3937
+Epoch 7: 1280/1288 99%, Loss: 16.2594
+Epoch: 7, Train Loss: 16.259378, Test Loss: 29.981263, Accuracy: 20.25%, RMSE: 1.3865
+Epoch training time (s): 504.32488465309143
+Epoch 8: 0/1288 0%, Loss: 18.6547
+Epoch 8: 320/1288 25%, Loss: 15.9054
+Epoch 8: 640/1288 50%, Loss: 15.5345
+Epoch 8: 960/1288 75%, Loss: 15.7856
+Epoch 8: 1280/1288 99%, Loss: 15.8118
+Epoch: 8, Train Loss: 15.811770, Test Loss: 29.063333, Accuracy: 20.30%, RMSE: 1.3844
+Epoch training time (s): 499.090931892395
+Epoch 9: 0/1288 0%, Loss: 15.8366
+Epoch 9: 320/1288 25%, Loss: 15.2641
+Epoch 9: 640/1288 50%, Loss: 15.3675
+Epoch 9: 960/1288 75%, Loss: 15.5321
+Epoch 9: 1280/1288 99%, Loss: 15.5788
+Epoch: 9, Train Loss: 15.578782, Test Loss: 28.893552, Accuracy: 21.65%, RMSE: 1.3413
+Epoch training time (s): 496.60387206077576
+Epoch 10: 0/1288 0%, Loss: 15.9272
+Epoch 10: 320/1288 25%, Loss: 15.8981
+Epoch 10: 640/1288 50%, Loss: 15.5723
+Epoch 10: 960/1288 75%, Loss: 15.3936
+Epoch 10: 1280/1288 99%, Loss: 15.4721
+Epoch: 10, Train Loss: 15.472086, Test Loss: 28.491106, Accuracy: 21.60%, RMSE: 1.4431
+Epoch training time (s): 484.26194953918457
+Epoch 11: 0/1288 0%, Loss: 15.3883
+Epoch 11: 320/1288 25%, Loss: 15.8869
+Epoch 11: 640/1288 50%, Loss: 15.3865
+Epoch 11: 960/1288 75%, Loss: 15.5154
+Epoch 11: 1280/1288 99%, Loss: 15.4242
+Epoch: 11, Train Loss: 15.424176, Test Loss: 28.554005, Accuracy: 21.32%, RMSE: 1.4481
+Epoch training time (s): 521.3715674877167
+Epoch 12: 0/1288 0%, Loss: 24.1650
+Epoch 12: 320/1288 25%, Loss: 15.4324
+Epoch 12: 640/1288 50%, Loss: 15.0112
+Epoch 12: 960/1288 75%, Loss: 15.2073
+Epoch 12: 1280/1288 99%, Loss: 15.4255
+Epoch: 12, Train Loss: 15.425516, Test Loss: 28.310094, Accuracy: 21.32%, RMSE: 1.4159
+Epoch training time (s): 461.46408200263977
+Epoch 13: 0/1288 0%, Loss: 9.7100
+Epoch 13: 320/1288 25%, Loss: 15.0567
+Epoch 13: 640/1288 50%, Loss: 15.5330
+Epoch 13: 960/1288 75%, Loss: 15.3936
+Epoch 13: 1280/1288 99%, Loss: 15.4154
+Epoch: 13, Train Loss: 15.415379, Test Loss: 28.463856, Accuracy: 22.16%, RMSE: 1.4136
+Epoch training time (s): 408.6143469810486
+Epoch 14: 0/1288 0%, Loss: 15.6684
+Epoch 14: 320/1288 25%, Loss: 15.5322
+Epoch 14: 640/1288 50%, Loss: 15.4519
+Epoch 14: 960/1288 75%, Loss: 15.3304
+Epoch 14: 1280/1288 99%, Loss: 15.4188
+Epoch: 14, Train Loss: 15.418782, Test Loss: 28.645626, Accuracy: 21.93%, RMSE: 1.4052
+Epoch training time (s): 440.8315236568451
+Epoch 15: 0/1288 0%, Loss: 14.8952
+Epoch 15: 320/1288 25%, Loss: 16.0018
+Epoch 15: 640/1288 50%, Loss: 15.6090
+Epoch 15: 960/1288 75%, Loss: 15.3711
+Epoch 15: 1280/1288 99%, Loss: 15.4084
+Epoch: 15, Train Loss: 15.408424, Test Loss: 28.417402, Accuracy: 21.66%, RMSE: 1.4153
+Epoch training time (s): 426.4642629623413
+Epoch 16: 0/1288 0%, Loss: 15.1494
+Epoch 16: 320/1288 25%, Loss: 15.1282
+Epoch 16: 640/1288 50%, Loss: 15.5394
+Epoch 16: 960/1288 75%, Loss: 15.2620
+Epoch 16: 1280/1288 99%, Loss: 15.4086
+Epoch: 16, Train Loss: 15.408562, Test Loss: 28.578388, Accuracy: 21.56%, RMSE: 1.4373
+Epoch training time (s): 449.75963020324707
+Epoch 17: 0/1288 0%, Loss: 12.2572
+Epoch 17: 320/1288 25%, Loss: 14.8176
+Epoch 17: 640/1288 50%, Loss: 15.5052
+Epoch 17: 960/1288 75%, Loss: 15.4185
+Epoch 17: 1280/1288 99%, Loss: 15.4106
+Epoch: 17, Train Loss: 15.410572, Test Loss: 28.373327, Accuracy: 21.99%, RMSE: 1.4292
+Epoch training time (s): 452.384712934494
+Epoch 18: 0/1288 0%, Loss: 19.9067
+Epoch 18: 320/1288 25%, Loss: 16.0502
+Epoch 18: 640/1288 50%, Loss: 15.6485
+Epoch 18: 960/1288 75%, Loss: 15.5685
+Epoch 18: 1280/1288 99%, Loss: 15.4131
+Epoch: 18, Train Loss: 15.413109, Test Loss: 28.851515, Accuracy: 22.56%, RMSE: 1.4349
+Epoch training time (s): 396.6941223144531
+Epoch 19: 0/1288 0%, Loss: 20.0023
+Epoch 19: 320/1288 25%, Loss: 15.6739
+Epoch 19: 640/1288 50%, Loss: 15.2633
+Epoch 19: 960/1288 75%, Loss: 15.3976
+Epoch 19: 1280/1288 99%, Loss: 15.4154
+Epoch: 19, Train Loss: 15.415373, Test Loss: 28.499819, Accuracy: 21.74%, RMSE: 1.4746
+Epoch training time (s): 472.417831659317
+Epoch 20: 0/1288 0%, Loss: 17.1429
+Epoch 20: 320/1288 25%, Loss: 16.2967
+Epoch 20: 640/1288 50%, Loss: 15.5154
+Epoch 20: 960/1288 75%, Loss: 15.5404
+Epoch 20: 1280/1288 99%, Loss: 15.4126
+Epoch: 20, Train Loss: 15.412589, Test Loss: 28.582504, Accuracy: 22.00%, RMSE: 1.4454
+Epoch training time (s): 462.18658113479614
+Epoch 21: 0/1288 0%, Loss: 14.0372
+Epoch 21: 320/1288 25%, Loss: 15.4568
+Epoch 21: 640/1288 50%, Loss: 15.5237
+Epoch 21: 960/1288 75%, Loss: 15.4436
+Epoch 21: 1280/1288 99%, Loss: 15.4157
+Epoch: 21, Train Loss: 15.415661, Test Loss: 28.441228, Accuracy: 21.52%, RMSE: 1.4133
+Epoch training time (s): 425.66747784614563
+Epoch 22: 0/1288 0%, Loss: 14.0515
+Epoch 22: 320/1288 25%, Loss: 16.3301
+Epoch 22: 640/1288 50%, Loss: 15.6502
+Epoch 22: 960/1288 75%, Loss: 15.4880
+Epoch 22: 1280/1288 99%, Loss: 15.4096
+Epoch: 22, Train Loss: 15.409605, Test Loss: 28.615201, Accuracy: 21.57%, RMSE: 1.4131
+Epoch training time (s): 440.05125427246094
+Epoch 23: 0/1288 0%, Loss: 13.6354
+Epoch 23: 320/1288 25%, Loss: 15.3223
+Epoch 23: 640/1288 50%, Loss: 15.4203
+Epoch 23: 960/1288 75%, Loss: 15.2388
+Epoch 23: 1280/1288 99%, Loss: 15.4078
+Epoch: 23, Train Loss: 15.407814, Test Loss: 28.674130, Accuracy: 21.24%, RMSE: 1.4270
+Epoch training time (s): 396.9796407222748
+Epoch 24: 0/1288 0%, Loss: 14.2921
+Epoch 24: 320/1288 25%, Loss: 15.9216
+Epoch 24: 640/1288 50%, Loss: 15.8581
+Epoch 24: 960/1288 75%, Loss: 15.4893
+Epoch 24: 1280/1288 99%, Loss: 15.4128
+Epoch: 24, Train Loss: 15.412844, Test Loss: 28.445485, Accuracy: 22.08%, RMSE: 1.4861
+Epoch training time (s): 460.9516694545746
+Epoch 25: 0/1288 0%, Loss: 11.9891
+Epoch 25: 320/1288 25%, Loss: 15.4203
+Epoch 25: 640/1288 50%, Loss: 15.5237
+Epoch 25: 960/1288 75%, Loss: 15.3214
+Epoch 25: 1280/1288 99%, Loss: 15.4118
+Epoch: 25, Train Loss: 15.411840, Test Loss: 28.915676, Accuracy: 22.37%, RMSE: 1.3447
+Epoch training time (s): 445.0070185661316
+Epoch 26: 0/1288 0%, Loss: 11.7819
+Epoch 26: 320/1288 25%, Loss: 15.9375
+Epoch 26: 640/1288 50%, Loss: 15.5008
+Epoch 26: 960/1288 75%, Loss: 15.3198
+Epoch 26: 1280/1288 99%, Loss: 15.4161
+Epoch: 26, Train Loss: 15.416088, Test Loss: 28.273345, Accuracy: 21.18%, RMSE: 1.4585
+Epoch training time (s): 465.3900635242462
+Epoch 27: 0/1288 0%, Loss: 19.7946
+Epoch 27: 320/1288 25%, Loss: 15.9150
+Epoch 27: 640/1288 50%, Loss: 15.8204
+Epoch 27: 960/1288 75%, Loss: 15.3726
+Epoch 27: 1280/1288 99%, Loss: 15.4082
+Epoch: 27, Train Loss: 15.408172, Test Loss: 28.492236, Accuracy: 22.16%, RMSE: 1.4270
+Epoch training time (s): 453.75480794906616
+Epoch 28: 0/1288 0%, Loss: 13.9771
+Epoch 28: 320/1288 25%, Loss: 15.5371
+Epoch 28: 640/1288 50%, Loss: 15.3299
+Epoch 28: 960/1288 75%, Loss: 15.1841
+Epoch 28: 1280/1288 99%, Loss: 15.4148
+Epoch: 28, Train Loss: 15.414836, Test Loss: 28.385595, Accuracy: 20.27%, RMSE: 1.4635
+Epoch training time (s): 431.64541888237
+Epoch 29: 0/1288 0%, Loss: 17.3476
+Epoch 29: 320/1288 25%, Loss: 15.9238
+Epoch 29: 640/1288 50%, Loss: 15.4087
+Epoch 29: 960/1288 75%, Loss: 15.2389
+Epoch 29: 1280/1288 99%, Loss: 15.4034
+Epoch: 29, Train Loss: 15.403442, Test Loss: 28.349270, Accuracy: 21.61%, RMSE: 1.4601
+Epoch training time (s): 420.8506374359131
+Epoch 30: 0/1288 0%, Loss: 14.4886
+Epoch 30: 320/1288 25%, Loss: 15.2797
+Epoch 30: 640/1288 50%, Loss: 15.5764
+Epoch 30: 960/1288 75%, Loss: 15.4486
+Epoch 30: 1280/1288 99%, Loss: 15.4045
+Epoch: 30, Train Loss: 15.404508, Test Loss: 28.709221, Accuracy: 21.99%, RMSE: 1.4387
+Epoch training time (s): 476.41689229011536
+Best epoch: 26
+Best loss: 28.273345
+Training time (s): 14014.475023984909
+Start testing
+Test: 0/142 (0%)
+Test: 32/142 (22%)
+Test: 64/142 (44%)
+Test: 96/142 (67%)
+Test: 128/142 (89%)
+Test Loss: 28.709221, Accuracy: 21.99%, RMSE: 1.4387

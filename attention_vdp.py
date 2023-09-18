@@ -5,6 +5,23 @@ from attention import get_positional_encoding
 from vdp import quadratic_vdp, relu_vdp, sigmoid_vdp, softmax_vdp, residual_vdp, LinearVDP, LayerNormVDP
 
 
+def patchify(images, device, n_patches=7):
+    n, c, h, w = images.shape
+
+    # Patchify method is implemented for square images only
+    assert h == w
+
+    patches    = torch.zeros(n, n_patches**2, h*w*c//n_patches**2).to(device)
+    patch_size = h//n_patches
+
+    for idx, image in enumerate(images):
+        for i in range(n_patches):
+            for j in range(n_patches):
+                patch = image[:, i*patch_size: (i + 1)*patch_size, j*patch_size: (j + 1)*patch_size]
+                patches[idx, i*n_patches + j] = patch.flatten()
+    return patches
+
+
 class AttentionHeadVDP(nn.Module):
     """
     Multi Head Attention with skip connection
@@ -272,6 +289,72 @@ class TransformerED_VDP(nn.Module):
             var_prob[:, t, :] = var_y[:, t, ...]
             pred[:, t+1, :]   = y[:, t, ...].argmax(dim=2)
         return pred[:, 1:, :], prob, var_prob
+
+
+class ViT_VDP(nn.Module):
+    def __init__(self, param, device):
+        super().__init__()
+        """
+        n: nb of Multi Head Attention
+        h: nb of heads per Multi Head
+        d: input dimension
+        """
+        super().__init__()
+        n, h        = param['dim']
+        emb_dim     = param['emb']
+        k           = emb_dim[-1]
+        d           = param['patch_size']**2
+        self.n      = n
+        self.q      = len(emb_dim)
+        self.device = device
+        self.nb_p   = param['n_patches']
+        self.mode   = param['residual']
+        self.tol    = param['tol']
+        self.pos    = get_positional_encoding(k, param['T_in'], device)
+        self.emb    = nn.ModuleList()
+        self.multi  = nn.ModuleList()
+        self.fc     = nn.ModuleList()
+        self.norm1  = nn.ModuleList()
+        self.norm2  = nn.ModuleList()
+        self.emb.append(LinearVDP(d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
+        for i in range(len(emb_dim) - 1):
+            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i + 1], var_init=param['var_init'], tol=self.tol))
+        for i in range(n):
+            if i != 0:
+                self.norm1.append(LayerNormVDP(k, var_init=param['var_init'], tol=param['tol']))
+            self.multi.append(AttentionHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
+            self.norm2.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
+            self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
+        self.classifier = LinearVDP(k, param['nb_classes'], var_init=param['var_init'], tol=self.tol)
+
+    def forward(self, x):
+        x     = patchify(x, self.device, self.nb_p)
+        var_x = torch.zeros_like(x)
+        for i in range(self.q-1):
+            x, var_x = relu_vdp(*self.emb[i](x, var_x), tol=self.tol)
+        x, var_x = self.emb[-1](x, var_x)
+        x = x + self.pos
+        for i in range(self.n-1):
+            # LayerNorms are before the layers
+            if i != 0:
+                x, var_x = self.norm1[i-1](x, var_x)
+            x, var_x = self.multi[i](x, var_x)
+            x, var_x = self.norm2[i](x, var_x)
+            # Linear layer with skip connection
+            x0, var_x0 = x[:], var_x[:]
+            x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True, tol=self.tol)
+            # torch.matmul(j_relu, self.fc[i].get_jac())
+            x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode, tol=self.tol)
+        # Global average pooling
+        x     = x.mean(dim=1)
+        var_x = var_x.mean(dim=1)/self.nb_p**2
+        # Classifier
+        x, var_x = softmax_vdp(*self.classifier(x, var_x), tol=self.tol)
+        return x, var_x
+
+    def inference(self, x):
+        x, var_x = self.forward(x)
+        return x.argmax(dim=-1), x, var_x
 
 
 def main():

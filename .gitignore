@@ -2,5 +2,5 @@
 **/__pycache__/
 archives/
 data/
-models/**/*.pt
+models/
 outputs/images/

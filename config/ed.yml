@@ -1,11 +1,11 @@
-name       : ed11
+name       : ed10
 model      : weights.pt
 seed       : 0
 gpu_number : "2"
 # load existing weights from ./models/[name]/[model]
 load       : False
 pretrained : False
-pretrain   : pretrain.pt
+pretrain   : pretrain.pt  # ed9.pt
 
 # plot
 
@@ -13,15 +13,14 @@ save_plot : True
 # Average variance (True) or only the last variance (False)
 average   : True
 # Variance scale range
-var_range : [0, 1]
-fig_file  : models/ed11/
+var_range : null  # [0, 1]
 
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim      : [6, 4]
+dim      : [4, 4]
 # embedding dimensions
-emb      : [256,]
+emb      : [512,]
 # use uncertainty quantification
 vdp      : False
 # Residual connection mode: identity, independence, taylor
@@ -31,17 +30,19 @@ residual : independence
 
 batch_size    : 32
 optimizer     : adam
-learning_rate : 1.e-3
+learning_rate : 1.e-2
+# Nb of epochs between each restart for cosine annealing
+Tmax          : 10
 l2_reg        : 0.
 # l2 regularization hyperparameter in ELBO
-kl_factor     : 1.e-24
+kl_factor     : 1.e-5
 # parameter 'gamma' in focal loss
-focus         : 2
+focus         : 3
 # balance each batch by removing elements from class 0
 balance       : False
-epochs        : 100
+epochs        : 50
 # test loss increase for early stopping
-stop          : 0.5
+stop          : 3
 # nb of workers for dataloaders
 workers       : 8
 # gradient clipping
@@ -49,11 +50,12 @@ clip          : 10
 # probability clipping to avoid log(0)
 tol           : 1.e-6
 # initialization factor for variance
-var_init      : 1.e-24
+var_init      : 1.e-6
 
 # dataset
 
-path        : ./data/20200718_C_NEW.feather
+dataset     : mnist  # pirats
+path        : ./data/20200718_C_NEW.feather  # ./data/20200718_C_CONV.feather 
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length
@@ -67,13 +69,13 @@ nb_lat      : 50
 # nb of altitude steps
 nb_alt      : 5
 # nb of classes
-nb_classes  : 5
+nb_classes  : 3
 # aircraft state dimension
 state_dim   : 6
 # max nb of simultaneous aircraft
-max_ac      : 785
+max_ac      : 674
 # weights for balance
-weights     : [1., 15., 15., 15., 15.]
+weights     : [1., 18.66, 18.66]
 
 # Hot-spot congestion prediction
 

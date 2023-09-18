@@ -1,0 +1,20 @@
+name      : vdp12
+# Variance scale range
+var_range : null
+
+# model
+
+vdp      : True
+
+# training
+
+# l2 regularization hyperparameter in ELBO
+kl_factor     : 0.
+epochs        : 30
+
+# dataset
+
+# nb of classes
+nb_classes  : 5
+
+

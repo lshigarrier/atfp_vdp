@@ -4,9 +4,10 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 from dataset import TsagiSet
 from attention import TransformerED
-from attention_vdp import TransformerED_VDP
+from attention_vdp import TransformerED_VDP, ViT_VDP
 
 
 def load_yaml(file_name=None):
@@ -74,33 +75,57 @@ def initialize(param, device, train=True):
     # Create model
     print('Initialize model')
     if param['vdp']:
-        model = TransformerED_VDP(param, device)
+        if param['dataset'] == 'pirats':
+            model = TransformerED_VDP(param, device)
+        elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
+            model = ViT_VDP(param, device)
+        else:
+            raise NotImplementedError
     else:
+        assert param['dataset'] == 'pirats'
         model = TransformerED(param, device)
     nb_param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Trainable parameters: {nb_param}')
 
     # Load datasets and create data loaders
+    transfos = transforms.Compose([
+        transforms.RandomRotation(degrees=45),
+        transforms.ToTensor()
+    ])
     if train:
-        trainset    = TsagiSet(param, train=True)
+        if param['dataset'] == 'pirats':
+            trainset = TsagiSet(param, train=True)
+        elif param['dataset'] == 'mnist':
+            trainset = datasets.MNIST('./data/mnist', train=True, download=True, transform=transfos)
+        elif param['dataset'] == 'fashion':
+            trainset = datasets.FashionMNIST('./data/fashion', train=True, download=True, transform=transfos)
+        else:
+            raise NotImplementedError
         trainloader = DataLoader(trainset, batch_size=param['batch_size'],
                                  shuffle=True, pin_memory=True, num_workers=param['workers'])
     else:
         trainloader = None
-    testset     = TsagiSet(param, train=False)
-    testloader  = DataLoader(testset, batch_size=param['batch_size'],
-                             shuffle=False, pin_memory=True, num_workers=param['workers'])
+    if param['dataset'] == 'pirats':
+        testset = TsagiSet(param, train=False)
+    elif param['dataset'] == 'mnist':
+        testset = datasets.MNIST('./data/mnist', train=False, transform=transforms.ToTensor())
+    elif param['dataset'] == 'fashion':
+        testset = datasets.FashionMNIST('./data/fashion', train=False, transform=transforms.ToTensor())
+    else:
+        raise NotImplementedError
+    testloader = DataLoader(testset, batch_size=param['batch_size'],
+                            shuffle=False, pin_memory=True, num_workers=param['workers'])
 
     # Load model
     if param['load']:
-        checkpoint = torch.load(f'models/{param["name"]}/{param["model"]}', map_location='cpu')
-        model.load_state_dict(checkpoint)
+        statedict = torch.load(f'models/{param["name"]}/{param["model"]}', map_location='cpu')
+        model.load_state_dict(statedict)
         for parameter in model.parameters():
             parameter.requires_grad = False
         model.eval()
     if param['pretrained']:
-        checkpoint = torch.load(f'models/{param["name"]}/{param["pretrain"]}', map_location='cpu')
-        load_partial_state_dict(model, checkpoint)
+        statedict = torch.load(f'models/{param["name"]}/{param["pretrain"]}', map_location='cpu')
+        load_partial_state_dict(model, statedict)
     model.to(device)
 
     # Set optimizer
@@ -111,7 +136,10 @@ def initialize(param, device, train=True):
     else:
         raise NotImplementedError
 
-    return trainloader, testloader, model, optimizer
+    # Set scheduler
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, param['Tmax'])
+
+    return trainloader, testloader, model, optimizer, scheduler
 
 
 def main():

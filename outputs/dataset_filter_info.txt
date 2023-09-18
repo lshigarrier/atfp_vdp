@@ -1,0 +1,106 @@
+name: vdp13
+model: weights.pt
+seed: 0
+gpu_number: None
+load: True
+pretrained: False
+pretrain: pretrain.pt
+save_plot: True
+average: True
+var_range: None
+dim: [4, 4]
+emb: [512]
+vdp: True
+residual: independence
+batch_size: 32
+optimizer: adam
+learning_rate: 0.001
+l2_reg: 0.0
+kl_factor: 1e-05
+focus: 3
+balance: False
+epochs: 50
+stop: 3
+workers: 8
+clip: 10
+tol: 1e-06
+var_init: 1e-06
+dataset: mnist
+path: ./data/20200718_C_NEW.feather
+split_ratio: 0.1
+T_in: 280
+T_out: 40
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+nb_classes: 3
+state_dim: 6
+max_ac: 785
+weights: [1.0, 15.0, 15.0, 15.0, 15.0]
+n_patches: 7
+patch_size: 4
+predict_spot: False
+spot: [42, 17, 3]
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Mins
+idac         0.000000
+time        60.000000
+lon         38.977399
+lat         -8.025444
+alt      10100.000000
+speed      148.946299
+head      -179.874900
+vz       -7985.000000
+cong         0.000000
+dtype: float64
+Maxs
+idac      8010.000000
+time     45270.000000
+lon         50.272926
+lat          6.904064
+alt      47000.000000
+speed      530.019811
+head       180.000000
+vz        4640.000000
+cong       130.251945
+dtype: float64
+Nb of trajs: 6992
+Max nb of a/c: 674
+Nb of rows: 1105935
+Nb of timestamps: 3015
+Nb of sequences: 2696
+Trainset length: 1278
+Trainset balance
+Class 0: 1885432 ; 90.32%
+Class 1: 101029 ; 4.84%
+Class 2: 101029 ; 4.84%
+Weight 0: 1.00
+Weight 1: 18.66
+Weight 2: 18.66
+Testset length: 142
+Testset balance
+Class 0: 551052 ; 81.67%
+Class 1: 61824 ; 9.16%
+Class 2: 61824 ; 9.16%
+Weight 0: 1.00
+Weight 1: 8.91
+Weight 2: 8.91
+Hot-spots
+idx_lon  idx_lat  idx_alt
+42.0     17.0     2.0        1.198790
+38.0     26.0     2.0        1.099307
+40.0     21.0     3.0        0.805113
+34.0     26.0     2.0        0.598507
+39.0     37.0     2.0        0.551696
+33.0     30.0     2.0        0.528938
+41.0     21.0     3.0        0.506735
+37.0     37.0     2.0        0.466432
+39.0     22.0     3.0        0.449383
+28.0     23.0     3.0        0.426589
+Name: cong, dtype: float64
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.

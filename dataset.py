@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 # from torch.utils.data import DataLoader
 
 
-def tsagi2frame(input_path='./data/20200718_C_NEW.TSAGI_COMP', output_path='./data/20200718_C_NEW.feather'):
+def tsagi2frame(input_path='./data/20200718_C.TSAGI_COMP1', output_path='./data/20200718_C_CONV.feather'):
     """
     Convert a TSAGI file into a feather file
     """
@@ -50,6 +50,9 @@ class TsagiSet(Dataset):
 
         # Load data
         self.data = pd.read_feather(param['path'])
+
+        # Filter data
+        self.data, self.nb_trajs = self.filter_data()
 
         # Compute the min and max of each column, then normalize all columns
         self.mins = self.data.min()
@@ -112,6 +115,19 @@ class TsagiSet(Dataset):
         out_seq[1:, :] = self.output_tensor[idx + self.t_in:idx + self.t_in + self.t_out, :]
         return input_seq, out_seq
 
+    def filter_data(self):
+        """
+        Remove trajectories whose max is below FL200
+        Remove points that are below FL100
+        :return: self.data
+        """
+        max_level = self.data.loc[self.data.groupby('idac')['alt'].idxmax()].reset_index(drop=True)
+        max_level = max_level.loc[max_level['alt'] > 20000]
+        max_level = max_level.loc[:, 'idac'].tolist()
+        frame = self.data.loc[self.data['idac'].isin(max_level)]
+        frame = frame.loc[frame['alt'] > 10000]
+        return frame, len(max_level)
+
     def get_time_slices(self):
         train_seq = round((self.total_seq - 2*(self.len_seq + self.sup_seq))/3)
         if self.train:
@@ -158,7 +174,10 @@ class TsagiSet(Dataset):
             return output_tensor
 
         else:
-            frame = self.data.loc[:, ['time', 'idx_lon', 'idx_lat', 'cong']]
+            frame = self.data.loc[:, ['time', 'idx_lon', 'idx_lat', 'cong', 'alt']]
+            frame = frame.loc[(frame['alt'] > (29000 - self.mins['alt'])/(self.maxs['alt'] - self.mins['alt'])) &
+                              (frame['alt'] < (36000 - self.mins['alt'])/(self.maxs['alt'] - self.mins['alt']))]
+            frame.drop('alt', axis=1)
             frame = frame[frame['time'].isin(self.timestamps)]
             frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'idx_lon', 'idx_lat'])
 
@@ -220,6 +239,7 @@ def main():
     testset  = TsagiSet(param, train=False)
     testset.output_mask = trainset.output_mask[:]
     print(f'Mins\n{trainset.mins}\nMaxs\n{trainset.maxs}')
+    print(f'Nb of trajs: {trainset.nb_trajs}')
     print(f'Max nb of a/c: {trainset.max_ac}')
     print(f'Nb of rows: {trainset.data.shape[0]}')
     print(f'Nb of timestamps: {len(trainset.times)}')

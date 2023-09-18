@@ -9,10 +9,8 @@ from vdp import loss_vdp
 from test import test, save_plot
 
 
-def train(param, device, trainloader, testloader, model, optimizer, epoch):
-    loss_list = []
-    nll_list  = []
-    kl_list   = []
+def train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch):
+    loss_list, loss_val, nll_list, nll_val, kl_list = [], [], [], [], []
     for idx, (x, y) in enumerate(trainloader):
         optimizer.zero_grad()
         x, y = x.to(device), y.to(device)
@@ -32,6 +30,7 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), param['clip'])
         optimizer.step()
+        scheduler.step()
 
         loss_list.append(loss.item())
 
@@ -55,48 +54,56 @@ def train(param, device, trainloader, testloader, model, optimizer, epoch):
                 pred, prob, var_prob = model.inference(x)
                 nll, kl              = loss_vdp(prob, var_prob, y, model, param, device)
                 loss = nll + param['kl_factor']*kl
-                # print(f'Statistics of predicted variances: {scipy.stats.describe(var_prob.flatten().detach().cpu())}')
+                nll_val.append(nll.item())
             else:
                 pred, prob = model.inference(x)
                 loss       = oce(prob, y, param, device)
             test_list.append(loss.item())
+            loss_val.append(loss.item())
             y = y[:, 1:, :]
-            rmse      += ((pred - y)**2).float().sum().item()
+            if param['dataset'] == 'pirats':
+                rmse  += ((pred - y)**2).float().sum().item()
             tot_corr  += torch.eq(pred, y).float().sum().item()
             tot_num   += y.numel()
         acc   = 100*tot_corr/tot_num
         rmse  = math.sqrt(rmse/tot_num)
         mloss = np.mean(test_list)
-        print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
-              f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
-    return mloss, loss_list, nll_list, kl_list
+        if param['dataset'] == 'pirats':
+            print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
+                  f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+        elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
+            print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
+                  f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%')
+    return mloss, loss_list, [np.mean(loss_val)], nll_list, [np.mean(nll_val)], kl_list
 
 
-def training(param, device, trainloader, testloader, model, optimizer):
+def training(param, device, trainloader, testloader, model, optimizer, scheduler):
     print('Start training')
     tac        = time.time()
     best_loss  = float('inf')
     best_epoch = 0
-    loss_full, nll_full, kl_full = [], [], []
+    loss_full, loss_full_val, nll_full, nll_full_val, kl_full = [], [], [], [], []
     for epoch in range(1, param['epochs'] + 1):
         tic       = time.time()
-        test_loss, loss_list, nll_list, kl_list = train(param, device, trainloader, testloader, model, optimizer, epoch)
-        loss_full = [*loss_full, *loss_list]
-        nll_full = [*nll_full, *nll_list]
-        kl_full = [*kl_full, *kl_list]
+        test_loss, loss_list, loss_val, nll_list, nll_val, kl_list = train(param, device, trainloader, testloader,
+                                                                           model, optimizer, scheduler, epoch)
+        loss_full     = [*loss_full, *loss_list]
+        loss_full_val = [*loss_full_val, *loss_val]
+        nll_full      = [*nll_full, *nll_list]
+        nll_full_val  = [*nll_full_val, *nll_val]
+        kl_full       = [*kl_full, *kl_list]
         print(f'Epoch training time (s): {time.time() - tic}')
         if test_loss < best_loss:
             best_loss  = test_loss
             best_epoch = epoch
-            checkpoint = model.state_dict()
-            torch.save(checkpoint, f'models/{param["name"]}/weights.pt')
+            torch.save(model.state_dict(), f'models/{param["name"]}/weights.pt')
         elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
             break
     print(f'Best epoch: {best_epoch}')
     print(f'Best loss: {best_loss:.6f}')
     print(f'Training time (s): {time.time() - tac}')
-    return loss_full, nll_full, kl_full
+    return loss_full, loss_full_val, nll_full, nll_full_val, kl_full
 
 
 def one_run(param):
@@ -113,33 +120,40 @@ def one_run(param):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Initialization
-    trainloader, testloader, model, optimizer = initialize(param, device, train=True)
-    print(f'Nb of timestamps: {len(trainloader.dataset.times)}')
-    print(f'Nb of sequences: {trainloader.dataset.total_seq}')
-    print(f'Trainset length: {len(trainloader.dataset)}')
-    print(f'Testset length: {len(testloader.dataset)}')
-    print(f'Max nb of a/c: {trainloader.dataset.max_ac}')
+    trainloader, testloader, model, optimizer, scheduler = initialize(param, device, train=True)
+    if param['dataset'] == 'pirats':
+        print(f'Nb of timestamps: {len(trainloader.dataset.times)}')
+        print(f'Nb of sequences: {trainloader.dataset.total_seq}')
+        print(f'Trainset length: {len(trainloader.dataset)}')
+        print(f'Testset length: {len(testloader.dataset)}')
+        print(f'Max nb of a/c: {trainloader.dataset.max_ac}')
 
     # Training
-    loss_full, nll_full, kl_full = training(param, device, trainloader, testloader, model, optimizer)
+    loss_full, loss_full_val, nll_full, nll_full_val, kl_full = training(param, device, trainloader, testloader,
+                                                                        model, optimizer, scheduler)
 
     # Save
-    with open( f'{param["fig_file"]}loss.pickle', 'wb') as f:
+    with open( f'models/{param["name"]}/loss.pickle', 'wb') as f:
         pickle.dump(loss_full, f)
-    with open( f'{param["fig_file"]}nll.pickle', 'wb') as f:
+    with open( f'models/{param["name"]}/loss_val.pickle', 'wb') as f:
+        pickle.dump(loss_full_val, f)
+    with open( f'models/{param["name"]}/nll.pickle', 'wb') as f:
         pickle.dump(nll_full, f)
-    with open( f'{param["fig_file"]}kl.pickle', 'wb') as f:
+    with open( f'models/{param["name"]}/nll_val.pickle', 'wb') as f:
+        pickle.dump(nll_full_val, f)
+    with open( f'models/{param["name"]}/kl.pickle', 'wb') as f:
         pickle.dump(kl_full, f)
 
     # Test
     print('Start testing')
-    varis = 0
+    varis    = 0
+    var_list = []
     if param['vdp']:
-        preds, truth, varis = test(param, device, testloader, model)
+        preds, truth, varis, var_list = test(param, device, testloader, model)
     else:
         preds, truth = test(param, device, testloader, model)
 
-    save_plot(param, preds, truth, varis)
+    save_plot(param, preds, truth, varis, var_list)
 
 
 def main():

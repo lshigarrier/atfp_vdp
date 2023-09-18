@@ -27,41 +27,57 @@ def loss_vdp(probs, var_prob, target, model, param, device):
     kl = 0
     for name, p in model.named_parameters():
         if p.requires_grad and 'cutoff' not in name:
-            if 'sigma' in name:
+            if 'rho' in name:
                 sig = F.softplus(p)
                 kl += no_nan(sig - torch.log(sig + param['tol']), param['tol']).sum()
             else:
                 kl += no_nan(p**2, param['tol']).sum()
+
     # Compute the expected negative log-likelihood
     probs   = no_nan(probs, param['tol']).clamp(min=param['tol'], max=1-param['tol'])
-    target  = target[:, 1:, :]
-    if param['balance']:
-        nb_total = target.ne(-1).int().sum().item()
-        coef     = torch.eq(target, 0)
-    mask     = target.ne(-1).int().unsqueeze(-1)
-    target   = mask*target
-    weights  = torch.take(torch.tensor(param['weights']).to(device), target).unsqueeze(-1)
-    target   = F.one_hot(target, num_classes=param['nb_classes'])
-    p_true   = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze().unsqueeze(-1)
-    var_prob = clamp_nan(var_prob, param['tol'])
-    inv_var  = torch.div(1, var_prob + param['tol'])
-    nll      = no_nan(mask*weights*(1 - p_true)**param['focus']*
-                      (torch.log(var_prob + param['tol']) + (target - probs)**2*inv_var),
-                      param['tol']).sum(dim=-1)
-    # Remove elements from the loss by multiplying them by 0
-    # such that the proportion of 0 in target is 1/param['nb_classes']
-    if param['balance']:
-        nb_zero = coef.long().sum().item()
-        remove = int(max(nb_zero - nb_total / param['nb_classes'], 0))
-        if remove > 0:
-            index = torch.nonzero(coef, as_tuple=False)
-            index = index[torch.randperm(nb_zero)]
-            index = index[:nb_zero - remove, :]
-            coef[index.t().tolist()] = False
-            coef = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
-            nll  = nll*coef
-    shapes = probs.shape
-    nll = nll.sum()/(shapes[0]*shapes[1]*shapes[2])
+
+    if param['dataset'] == 'pirats':
+        target  = target[:, 1:, :]
+        if param['balance']:
+            nb_total = target.ne(-1).int().sum().item()
+            coef     = torch.eq(target, 0)
+        mask     = target.ne(-1).int()
+        target   = mask*target
+        mask     = mask.unsqueeze(-1)
+        weights  = torch.take(torch.tensor(param['weights']).to(device), target).unsqueeze(-1)
+        target   = F.one_hot(target, num_classes=param['nb_classes'])
+        p_true   = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze().unsqueeze(-1)
+        var_prob = clamp_nan(var_prob, param['tol'])
+        inv_var  = torch.div(1, var_prob + param['tol'])
+        nll      = no_nan(mask*weights*(1 - p_true)**param['focus']*
+                          (torch.log(var_prob + param['tol']) + (target - probs)**2*inv_var),
+                          param['tol']).sum(dim=-1)
+        # Remove elements from the loss by multiplying them by 0
+        # such that the proportion of 0 in target is 1/param['nb_classes']
+        if param['balance']:
+            nb_zero = coef.long().sum().item()
+            remove = int(max(nb_zero - nb_total / param['nb_classes'], 0))
+            if remove > 0:
+                index = torch.nonzero(coef, as_tuple=False)
+                index = index[torch.randperm(nb_zero)]
+                index = index[:nb_zero - remove, :]
+                coef[index.t().tolist()] = False
+                coef = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
+                nll  = nll*coef
+        shapes = probs.shape
+        nll = nll.sum()/(shapes[0]*shapes[1]*shapes[2])
+
+    elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
+        target = F.one_hot(target, num_classes=param['nb_classes'])
+        var_prob = clamp_nan(var_prob, param['tol'])
+        inv_var = torch.div(1, var_prob + param['tol'])
+        nll = no_nan((torch.log(var_prob + param['tol']) + (target - probs)**2*inv_var),
+                     param['tol']).sum(dim=-1)
+        nll = nll.sum()/probs.shape[0]
+
+    else:
+        raise NotImplementedError
+
     return nll, kl
 
 
