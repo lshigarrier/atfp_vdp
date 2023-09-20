@@ -21,6 +21,8 @@ def test(param, device, testloader, model):
                 true_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.int)
                 if param['vdp']:
                     var_tensor = torch.zeros(len(testloader.dataset), param['nb_lon'], param['nb_lat'], dtype=torch.float)
+        else:
+            pred_tensor, true_tensor, var_tensor = 0, 0, 0
 
         test_list = []
         var_list  = [[], []]
@@ -75,8 +77,8 @@ def test(param, device, testloader, model):
             tot_corr   += correct.float().sum().item()
             tot_num    += y.numel()
             if param['vdp']:
-                var_list[0] = [*var_list, *var[correct].tolist()]
-                var_list[1] = [*var_list, *var[~correct].tolist()]
+                var_list[0] = [*var_list, *var[correct].flatten().detach().tolist()]
+                var_list[1] = [*var_list, *var[~correct].flatten().detach().tolist()]
             if idx % max(int(len(testloader)/4), 1) == 0:
                 if idx != len(testloader)-1:
                     total = idx*param['batch_size']
@@ -85,7 +87,10 @@ def test(param, device, testloader, model):
                 print(f'Test: {total}/{len(testloader.dataset)} ({100.*idx/len(testloader):.0f}%)')
         acc  = 100*tot_corr/tot_num
         rmse = math.sqrt(rmse/tot_num)
-        print(f'Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+        if param['dataset'] == 'pirats':
+            print(f'Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+        elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
+            print(f'Test Loss: {np.mean(test_list):.6f}, Accuracy: {acc:.2f}%')
 
         if param['vdp']:
             return pred_tensor, true_tensor, var_tensor, var_list
@@ -94,14 +99,14 @@ def test(param, device, testloader, model):
 
 
 def save_plot(param, preds, truth, varis, var_list):
-    # Save
-    if param['save_plot']:
-        torch.save(preds, f'models/{param["name"]}/preds.pickle')
-        torch.save(truth, f'models/{param["name"]}/truth.pickle')
-        if param['vdp']:
-            torch.save(varis, f'models/{param["name"]}/varis.pickle')
-    with open( f'models/{param["name"]}/var_list.pickle', 'wb') as f:
-        pickle.dump(var_list, f)
+    torch.save(preds, f'models/{param["name"]}/preds.pickle')
+    torch.save(truth, f'models/{param["name"]}/truth.pickle')
+    if param['vdp']:
+        torch.save(varis, f'models/{param["name"]}/varis.pickle')
+    var_correct = np.array(var_list[0])
+    var_incorr  = np.array(var_list[1])
+    torch.save(var_correct, f'models/{param["name"]}/var_corr.pickle')
+    torch.save(var_incorr, f'models/{param["name"]}/var_incorr.pickle')
 
 
 def one_test_run(param):

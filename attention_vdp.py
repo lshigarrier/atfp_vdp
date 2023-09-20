@@ -302,7 +302,7 @@ class ViT_VDP(nn.Module):
         super().__init__()
         n, h        = param['dim']
         emb_dim     = param['emb']
-        k           = emb_dim[-1]
+        k           = emb_dim[0]
         d           = param['patch_size']**2
         self.n      = n
         self.q      = len(emb_dim)
@@ -310,30 +310,28 @@ class ViT_VDP(nn.Module):
         self.nb_p   = param['n_patches']
         self.mode   = param['residual']
         self.tol    = param['tol']
-        self.pos    = get_positional_encoding(k, param['T_in'], device)
-        self.emb    = nn.ModuleList()
+        self.pos    = get_positional_encoding(k, param['n_patches']**2, device)
+        self.clas   = nn.ModuleList()
         self.multi  = nn.ModuleList()
         self.fc     = nn.ModuleList()
         self.norm1  = nn.ModuleList()
         self.norm2  = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
-        for i in range(len(emb_dim) - 1):
-            self.emb.append(LinearVDP(emb_dim[i], emb_dim[i + 1], var_init=param['var_init'], tol=self.tol))
+        self.emb    = LinearVDP(d, k, var_init=param['var_init'], tol=self.tol)
         for i in range(n):
             if i != 0:
                 self.norm1.append(LayerNormVDP(k, var_init=param['var_init'], tol=param['tol']))
             self.multi.append(AttentionHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
             self.norm2.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
             self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
-        self.classifier = LinearVDP(k, param['nb_classes'], var_init=param['var_init'], tol=self.tol)
+        for i in range(len(emb_dim)-1):
+            self.clas.append(LinearVDP(emb_dim[i], emb_dim[i+1], var_init=param['var_init'], tol=self.tol))
+        self.classifier = LinearVDP(emb_dim[-1], param['nb_classes'], var_init=param['var_init'], tol=self.tol)
 
-    def forward(self, x):
-        x     = patchify(x, self.device, self.nb_p)
-        var_x = torch.zeros_like(x)
-        for i in range(self.q-1):
-            x, var_x = relu_vdp(*self.emb[i](x, var_x), tol=self.tol)
-        x, var_x = self.emb[-1](x, var_x)
-        x = x + self.pos
+    def forward(self, x, _):
+        x        = patchify(x, self.device, self.nb_p)
+        var_x    = torch.zeros_like(x)
+        x, var_x = self.emb(x, var_x)
+        x        = x + self.pos
         for i in range(self.n-1):
             # LayerNorms are before the layers
             if i != 0:
@@ -349,11 +347,13 @@ class ViT_VDP(nn.Module):
         x     = x.mean(dim=1)
         var_x = var_x.mean(dim=1)/self.nb_p**2
         # Classifier
+        for i in range(self.q-1):
+            x, var_x = relu_vdp(*self.clas[i](x, var_x), tol=self.tol)
         x, var_x = softmax_vdp(*self.classifier(x, var_x), tol=self.tol)
         return x, var_x
 
     def inference(self, x):
-        x, var_x = self.forward(x)
+        x, var_x = self.forward(x, x)
         return x.argmax(dim=-1), x, var_x
 
 

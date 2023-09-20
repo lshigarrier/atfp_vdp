@@ -14,6 +14,7 @@ from utils import load_yaml
 def moving_average(array, window_size):
     i = 0
     moving_averages = []
+    array = [*array, *[array[-1] for _ in range(window_size-1)]]
     array = np.array(array)
     while i < len(array) - window_size + 1:
         geo_mean = np.exp(np.log(array[i: i + window_size]).mean())
@@ -203,13 +204,13 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
 
 
 def main():
-    param = load_yaml('test_ed')
+    param = load_yaml('plots')
 
     # Load data
     preds = torch.load(f'models/{param["name"]}/preds.pickle')
     truth = torch.load(f'models/{param["name"]}/truth.pickle')
 
-    window = 1000
+    window = 50
     with open(f'models/{param["name"]}/loss.pickle', 'rb') as f:
         loss_full = moving_average(pickle.load(f), window)
     with open(f'models/{param["name"]}/loss_val.pickle', 'rb') as f:
@@ -231,14 +232,14 @@ def main():
     ConfusionMatrixDisplay(cm).plot()
     figs = []
     if param['vdp']:
-        with open(f'models/{param["name"]}/var_list.pickle', 'rb') as f:
-            var_list = pickle.load(f)
         varis = torch.load(f'models/{param["name"]}/varis.pickle')
-        figs.append(plot_hist(var_list[0], bins=50, title='Correctly classified',
-                              xlabel='Variance', ylabel='Numbers'))
-        figs.append(plot_hist(var_list[0], bins=50, title='Incorrectly classified',
-                              xlabel='Variance', ylabel='Numbers'))
         figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
+        var_correct = torch.load(f'models/{param["name"]}/var_corr.pickle')
+        var_incorr  = torch.load(f'models/{param["name"]}/var_incorr.pickle')
+        figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
+                              xlabel='Variance', ylabel='Numbers'))
+        figs.append(plot_hist(var_incorr, bins=50, title='Incorrectly classified',
+                              xlabel='Variance', ylabel='Numbers'))
     else:
         figs.append(plot_pred(preds, truth, param['nb_classes']))
 

@@ -1,6 +1,6 @@
-name       : vdp13
+name       : vdp18
 model      : weights.pt
-seed       : 0
+seed       : 1
 gpu_number : null
 # load existing weights from ./models/[name]/[model]
 load       : True
@@ -9,7 +9,6 @@ pretrain   : pretrain.pt  # ed9.pt
 
 # plot
 
-save_plot : True
 # Average variance (True) or only the last variance (False)
 average   : True
 # Variance scale range
@@ -20,7 +19,7 @@ var_range : null  # [0, 1]
 # nb of multi-head (n), nb of heads per multi-head (h)
 dim      : [4, 4]
 # embedding dimensions
-emb      : [512,]
+emb      : [64,]
 # use uncertainty quantification
 vdp      : True
 # Residual connection mode: identity, independence, taylor
@@ -28,18 +27,18 @@ residual : independence
 
 # training
 
-batch_size    : 32
+batch_size    : 64
 optimizer     : adam
 learning_rate : 1.e-2
 # Nb of epochs between each restart for cosine annealing
 Tmax          : 10
 l2_reg        : 0.
 # l2 regularization hyperparameter in ELBO
-kl_factor     : 1.e-5
+kl_factor     : 1.e-8
 # parameter 'gamma' in focal loss
-focus         : 3
+focus         : 2
 # balance each batch by removing elements from class 0
-balance       : False
+balance       : True
 epochs        : 50
 # test loss increase for early stopping
 stop          : 3
@@ -54,11 +53,13 @@ var_init      : 1.e-6
 
 # dataset
 
-dataset     : mnist  # pirats
+dataset     : pirats  # pirats # mnist # fashion
+# nb of classes
+nb_classes  : 10
 
 # pirats
 
-path        : ./data/20200718_C_NEW.feather  # ./data/20200718_C_CONV.feather
+path        : ./data/20200718_C_CONV.feather  # ./data/20200718_C_CONV.feather # ./data/20200718_C_NEW.feather
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length
@@ -71,8 +72,6 @@ nb_lon      : 50
 nb_lat      : 50
 # nb of altitude steps
 nb_alt      : 5
-# nb of classes
-nb_classes  : 3
 # aircraft state dimension
 state_dim   : 6
 # max nb of simultaneous aircraft

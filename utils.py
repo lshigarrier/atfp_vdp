@@ -104,7 +104,7 @@ def initialize(param, device, train=True):
         trainloader = DataLoader(trainset, batch_size=param['batch_size'],
                                  shuffle=True, pin_memory=True, num_workers=param['workers'])
     else:
-        trainloader = None
+        trainloader = [0]
     if param['dataset'] == 'pirats':
         testset = TsagiSet(param, train=False)
     elif param['dataset'] == 'mnist':
@@ -137,7 +137,7 @@ def initialize(param, device, train=True):
         raise NotImplementedError
 
     # Set scheduler
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, param['Tmax'])
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, param['Tmax']*len(trainloader))
 
     return trainloader, testloader, model, optimizer, scheduler
 

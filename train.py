@@ -39,8 +39,13 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
                 total = idx*param['batch_size']
             else:
                 total = (idx - 1)*param['batch_size'] + len(x)
-            print(f'Epoch {epoch}: {total}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
-                  f'Loss: {np.mean(loss_list):.4f}')
+            if param['vdp']:
+                print(f'Epoch {epoch}: {total}/{len(trainloader.dataset)} {100 * idx / len(trainloader):.0f}%, '
+                      f'Loss: {np.mean(loss_list):.2f}, NLL: {np.mean(nll_list):.2f}, '
+                      f'KL: {param["kl_factor"]*np.mean(kl_list):.2f}')
+            else:
+                print(f'Epoch {epoch}: {total}/{len(trainloader.dataset)} {100*idx/len(trainloader):.0f}%, '
+                      f'Loss: {np.mean(loss_list):.2f}')
 
     model.eval()
     with torch.no_grad():
@@ -60,8 +65,8 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
                 loss       = oce(prob, y, param, device)
             test_list.append(loss.item())
             loss_val.append(loss.item())
-            y = y[:, 1:, :]
             if param['dataset'] == 'pirats':
+                y = y[:, 1:, :]
                 rmse  += ((pred - y)**2).float().sum().item()
             tot_corr  += torch.eq(pred, y).float().sum().item()
             tot_num   += y.numel()
@@ -69,11 +74,21 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
         rmse  = math.sqrt(rmse/tot_num)
         mloss = np.mean(test_list)
         if param['dataset'] == 'pirats':
-            print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
-                  f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+            if param['vdp']:
+                print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.4f}, '
+                      f'NLL: {np.mean(nll_list):.4f}, KL: {param["kl_factor"]*np.mean(kl_list):.4f}\n'
+                      f'Test Loss: {mloss:.4f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
+            else:
+                print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.4f}, '
+                      f'Test Loss: {mloss:.4f}, Accuracy: {acc:.2f}%, RMSE: {rmse:.4f}')
         elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
-            print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.6f},'
-                  f' Test Loss: {mloss:.6f}, Accuracy: {acc:.2f}%')
+            if param['vdp']:
+                print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.4f}, '
+                      f'NLL: {np.mean(nll_list):.4f}, KL: {param["kl_factor"]*np.mean(kl_list):.4f}\n'
+                      f'Test Loss: {mloss:.4f}, Accuracy: {acc:.2f}%')
+            else:
+                print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.4f}, '
+                      f'Test Loss: {mloss:.4f}, Accuracy: {acc:.2f}%')
     return mloss, loss_list, [np.mean(loss_val)], nll_list, [np.mean(nll_val)], kl_list
 
 
@@ -100,6 +115,7 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
         elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
             break
+    torch.save(model.state_dict(), f'models/{param["name"]}/final.pt')
     print(f'Best epoch: {best_epoch}')
     print(f'Best loss: {best_loss:.6f}')
     print(f'Training time (s): {time.time() - tac}')
@@ -115,6 +131,7 @@ def one_run(param):
 
     # Declare CPU/GPU usage
     if param['gpu_number'] is not None:
+        # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
         os.environ['CUDA_DEVICE_ORDER']    = 'PCI_BUS_ID'
         os.environ['CUDA_VISIBLE_DEVICES'] = param['gpu_number']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

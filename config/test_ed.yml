@@ -1,6 +1,6 @@
 name       : ed10
 model      : weights.pt
-seed       : 0
+seed       : 1
 gpu_number : null
 # load existing weights from ./models/[name]/[model]
 load       : True
@@ -9,7 +9,6 @@ pretrain   : pretrain.pt  # ed9.pt
 
 # plot
 
-save_plot : True
 # Average variance (True) or only the last variance (False)
 average   : True
 # Variance scale range
@@ -18,9 +17,9 @@ var_range : null  # [0, 1]
 # model
 
 # nb of multi-head (n), nb of heads per multi-head (h)
-dim      : [8, 8]
+dim      : [4, 4]
 # embedding dimensions
-emb      : [512,]
+emb      : [64,]
 # use uncertainty quantification
 vdp      : False
 # Residual connection mode: identity, independence, taylor
@@ -35,11 +34,11 @@ learning_rate : 1.e-2
 Tmax          : 10
 l2_reg        : 0.
 # l2 regularization hyperparameter in ELBO
-kl_factor     : 1.e-5
+kl_factor     : 1.e-8
 # parameter 'gamma' in focal loss
-focus         : 3
+focus         : 2
 # balance each batch by removing elements from class 0
-balance       : False
+balance       : True
 epochs        : 50
 # test loss increase for early stopping
 stop          : 3
@@ -54,8 +53,8 @@ var_init      : 1.e-6
 
 # dataset
 
-dataset     : mnist  # pirats
-path        : ./data/20200718_C_NEW.feather  # ./data/20200718_C_CONV.feather
+dataset     : pirats
+path        : ./data/20200718_C_CONV.feather  # ./data/20200718_C_CONV.feather # ./data/20200718_C_NEW.feather
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length
