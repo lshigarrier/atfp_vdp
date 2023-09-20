@@ -55,7 +55,7 @@ var_init      : 1.e-6
 
 dataset     : pirats  # pirats # mnist # fashion
 # nb of classes
-nb_classes  : 10
+nb_classes  : 3
 
 # pirats
 

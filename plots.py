@@ -57,13 +57,18 @@ def plot_curves(data, legend, title, xlabel, ylabel, xlim=(None, None), ylim=(No
     return fig
 
 
-def plot_spot(preds, truth):
+def plot_spot(preds, truth, varis=None):
     fig, ax = plt.subplots(figsize=(24, 18))
     ax.plot(range(len(truth)), truth, label='Truth')
     ax.plot(range(len(preds)), preds, label='Prediction')
     ax.set_xlabel('Time')
     ax.set_ylabel('Class')
     ax.legend()
+    if varis is not None:
+        ax2 = ax.twinx()
+        ax2.plot(range(len(varis)), varis, label='Variance', c='red')
+        ax2.set_ylabel('Variance')
+        ax2.legend()
     return fig
 
 
@@ -214,13 +219,19 @@ def main():
     with open(f'models/{param["name"]}/loss.pickle', 'rb') as f:
         loss_full = moving_average(pickle.load(f), window)
     with open(f'models/{param["name"]}/loss_val.pickle', 'rb') as f:
-        loss_val = pickle.load(f)
+        loss_val  = pickle.load(f)
     with open(f'models/{param["name"]}/nll.pickle', 'rb') as f:
         nll_full  = moving_average(pickle.load(f), window)
     with open(f'models/{param["name"]}/nll_val.pickle', 'rb') as f:
-        nll_val = pickle.load(f)
+        nll_val   = pickle.load(f)
     with open(f'models/{param["name"]}/kl.pickle', 'rb') as f:
         kl_full   = np.array(moving_average(pickle.load(f), window))
+    '''
+    with open(f'models/{param["name"]}/class.pickle', 'rb') as f:
+        class_full = pickle.load(f)
+    for i in range(len(class_full)):
+        class_full[i] = moving_average(class_full[i], window)
+    '''
 
     # Plots
     truth_flat = truth.flatten()
@@ -231,32 +242,34 @@ def main():
     cm = confusion_matrix(truth_flat, preds_flat)
     ConfusionMatrixDisplay(cm).plot()
     figs = []
+
     if param['vdp']:
         varis = torch.load(f'models/{param["name"]}/varis.pickle')
-        figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
+        if param['predict_spot']:
+            figs.append(plot_spot(preds, truth, varis))
+        else:
+            figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
+        '''
         var_correct = torch.load(f'models/{param["name"]}/var_corr.pickle')
         var_incorr  = torch.load(f'models/{param["name"]}/var_incorr.pickle')
         figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
                               xlabel='Variance', ylabel='Numbers'))
         figs.append(plot_hist(var_incorr, bins=50, title='Incorrectly classified',
                               xlabel='Variance', ylabel='Numbers'))
+        '''
     else:
-        figs.append(plot_pred(preds, truth, param['nb_classes']))
+        if param['predict_spot']:
+            figs.append(plot_spot(preds, truth))
+        else:
+            figs.append(plot_pred(preds, truth, param['nb_classes']))
 
     print(f'KL factor: {param["kl_factor"]}')
     figs.append(plot_curves([loss_full, loss_val], ['Training', 'Validation'],
                             'Full loss', 'Epoch', 'Full loss', stop=param['epochs']))
     figs.append(plot_curves([nll_full, nll_val], ['Training', 'Validation'],
                             'NLL', 'Epoch', 'Loss', stop=param['epochs']))
-    figs.append(plot_curves([kl_full], [None], 'KL', 'Epoch', 'Loss', stop=param['epochs']))
     figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Epoch', 'Loss', stop=param['epochs']))
     n    = int(len(nll_full)/2)
-    ymax = max(nll_full[n], kl_full[n])
-    ymax = ymax*1.1
-    if np.isnan(ymax):
-        ymax = None
-    figs.append(plot_curves([nll_full, kl_full], ['nll', 'kl'], 'NLL and KL', 'Epoch', 'Loss',
-                            ylim=(0, ymax), stop=param['epochs']))
     ymax = max(nll_full[n], param['kl_factor']*kl_full[n])
     ymax = ymax*1.1
     if np.isnan(ymax):
@@ -264,6 +277,10 @@ def main():
     figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
                             ['nll', 'factor*kl'], 'NLL and factor*KL', 'Epoch', 'Loss',
                             ylim=(0, ymax), stop=param['epochs']))
+    '''
+    figs.append(plot_curves(class_full, [f'Class {i}' for i in range(len(class_full))],
+                            'NLL for each class', 'Epoch', 'Loss', stop=param['epochs']))
+    '''
     plt.show()
 
 

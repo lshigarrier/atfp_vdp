@@ -11,6 +11,7 @@ from test import test, save_plot
 
 def train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch):
     loss_list, loss_val, nll_list, nll_val, kl_list = [], [], [], [], []
+    class_nll_list = [[] for _ in range(param['nb_classes'])]
     for idx, (x, y) in enumerate(trainloader):
         optimizer.zero_grad()
         x, y = x.to(device), y.to(device)
@@ -18,10 +19,12 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
         # Forward pass
         if param['vdp']:
             probs, var_prob = model(x, y)
-            nll, kl = loss_vdp(probs, var_prob, y, model, param, device)
+            nll, kl, class_nll = loss_vdp(probs, var_prob, y, model, param, device)
             loss = nll + param['kl_factor']*kl
             nll_list.append(nll.item())
             kl_list.append(kl.item())
+            for i in range(param['nb_classes']):
+                class_nll_list[i].append(class_nll[i])
         else:
             probs = model(x, y)
             loss = oce(probs, y, param, device)
@@ -57,7 +60,7 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
             x, y  = x.to(device), y.to(device)
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
-                nll, kl              = loss_vdp(prob, var_prob, y, model, param, device)
+                nll, kl, class_nll   = loss_vdp(prob, var_prob, y, model, param, device)
                 loss = nll + param['kl_factor']*kl
                 nll_val.append(nll.item())
             else:
@@ -66,10 +69,14 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
             test_list.append(loss.item())
             loss_val.append(loss.item())
             if param['dataset'] == 'pirats':
-                y = y[:, 1:, :]
-                rmse  += ((pred - y)**2).float().sum().item()
-            tot_corr  += torch.eq(pred, y).float().sum().item()
-            tot_num   += y.numel()
+                y     = y[:, 1:, :]
+                mask  = y.ne(-1)
+                rmse += ((pred[mask] - y[mask])**2).float().sum().item()
+                tot_corr += torch.eq(pred[mask], y[mask]).float().sum().item()
+                tot_num  += mask.int().sum().item()
+            else:
+                tot_corr += torch.eq(pred, y).float().sum().item()
+                tot_num += y.numel()
         acc   = 100*tot_corr/tot_num
         rmse  = math.sqrt(rmse/tot_num)
         mloss = np.mean(test_list)
@@ -89,7 +96,7 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
             else:
                 print(f'Epoch: {epoch}, Train Loss: {np.mean(loss_list):.4f}, '
                       f'Test Loss: {mloss:.4f}, Accuracy: {acc:.2f}%')
-    return mloss, loss_list, [np.mean(loss_val)], nll_list, [np.mean(nll_val)], kl_list
+    return mloss, loss_list, [np.mean(loss_val)], nll_list, [np.mean(nll_val)], kl_list, class_nll_list
 
 
 def training(param, device, trainloader, testloader, model, optimizer, scheduler):
@@ -97,16 +104,17 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
     tac        = time.time()
     best_loss  = float('inf')
     best_epoch = 0
-    loss_full, loss_full_val, nll_full, nll_full_val, kl_full = [], [], [], [], []
+    loss_full, loss_full_val, nll_full, nll_full_val, kl_full, class_full = [], [], [], [], [], []
     for epoch in range(1, param['epochs'] + 1):
         tic       = time.time()
-        test_loss, loss_list, loss_val, nll_list, nll_val, kl_list = train(param, device, trainloader, testloader,
-                                                                           model, optimizer, scheduler, epoch)
+        res = train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch)
+        test_loss, loss_list, loss_val, nll_list, nll_val, kl_list, class_nll_list = res
         loss_full     = [*loss_full, *loss_list]
         loss_full_val = [*loss_full_val, *loss_val]
         nll_full      = [*nll_full, *nll_list]
         nll_full_val  = [*nll_full_val, *nll_val]
         kl_full       = [*kl_full, *kl_list]
+        class_full    = [*class_full, *class_nll_list]
         print(f'Epoch training time (s): {time.time() - tic}')
         if test_loss < best_loss:
             best_loss  = test_loss
@@ -119,7 +127,7 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
     print(f'Best epoch: {best_epoch}')
     print(f'Best loss: {best_loss:.6f}')
     print(f'Training time (s): {time.time() - tac}')
-    return loss_full, loss_full_val, nll_full, nll_full_val, kl_full
+    return loss_full, loss_full_val, nll_full, nll_full_val, kl_full, class_full
 
 
 def one_run(param):
@@ -146,8 +154,8 @@ def one_run(param):
         print(f'Max nb of a/c: {trainloader.dataset.max_ac}')
 
     # Training
-    loss_full, loss_full_val, nll_full, nll_full_val, kl_full = training(param, device, trainloader, testloader,
-                                                                        model, optimizer, scheduler)
+    res = training(param, device, trainloader, testloader, model, optimizer, scheduler)
+    loss_full, loss_full_val, nll_full, nll_full_val, kl_full, class_full = res
 
     # Save
     with open( f'models/{param["name"]}/loss.pickle', 'wb') as f:
@@ -160,6 +168,8 @@ def one_run(param):
         pickle.dump(nll_full_val, f)
     with open( f'models/{param["name"]}/kl.pickle', 'wb') as f:
         pickle.dump(kl_full, f)
+    with open( f'models/{param["name"]}/class.pickle', 'wb') as f:
+        pickle.dump(class_full, f)
 
     # Test
     print('Start testing')

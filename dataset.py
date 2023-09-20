@@ -36,7 +36,7 @@ def tsagi2frame(input_path='./data/20200718_C.TSAGI_COMP1', output_path='./data/
 
 class TsagiSet(Dataset):
 
-    def __init__(self, param, train=True):
+    def __init__(self, param, train=True, quantiles=None):
         """
         Load the data from a feather file
         Normalize the data
@@ -63,7 +63,10 @@ class TsagiSet(Dataset):
         self.max_ac = self.data.groupby(['time'])['time'].count().max()
 
         # Quantiles of the congestion values to define the classes
-        self.quantiles = []
+        if quantiles is None:
+            self.quantiles = []
+        else:
+            self.quantiles = quantiles
 
         # Initialize various attributes
         self.nb_lon       = int(param['nb_lon'])
@@ -163,10 +166,11 @@ class TsagiSet(Dataset):
             frame = frame[frame['time'].isin(self.timestamps)]
             frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time'])
 
-            for i in range(1, nb_classes-1):
-                self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
-            tensor = torch.tensor(frame.values)
+            if len(self.quantiles) == 0:
+                for i in range(1, nb_classes-1):
+                    self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
 
+            tensor = torch.tensor(frame.values)
             output_tensor = torch.zeros(len(self.timestamps), 1, dtype=torch.long)
             for row in tensor:
                 t = self.timestamps.index(row[0].item())
@@ -181,10 +185,11 @@ class TsagiSet(Dataset):
             frame = frame[frame['time'].isin(self.timestamps)]
             frame = frame.sort_values(by=['cong'], ascending=False).drop_duplicates(['time', 'idx_lon', 'idx_lat'])
 
-            for i in range(1, nb_classes-1):
-                self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
-            tensor = torch.tensor(frame.values)
+            if len(self.quantiles) == 0:
+                for i in range(1, nb_classes-1):
+                    self.quantiles.append(frame['cong'].quantile(q=i/(nb_classes-1)))
 
+            tensor = torch.tensor(frame.values)
             output_tensor = torch.zeros(len(self.timestamps), self.nb_lon, self.nb_lat, dtype=torch.long)
             for row in tensor:
                 t = self.timestamps.index(row[0].item())
@@ -236,7 +241,7 @@ def main():
     for key in param:
         print(f'{key}: {param[key]}')
     trainset = TsagiSet(param, train=True)
-    testset  = TsagiSet(param, train=False)
+    testset  = TsagiSet(param, train=False, quantiles=trainset.quantiles)
     testset.output_mask = trainset.output_mask[:]
     print(f'Mins\n{trainset.mins}\nMaxs\n{trainset.maxs}')
     print(f'Nb of trajs: {trainset.nb_trajs}')
@@ -245,6 +250,7 @@ def main():
     print(f'Nb of timestamps: {len(trainset.times)}')
     print(f'Nb of sequences: {trainset.total_seq}')
     print(f'Trainset length: {len(trainset)}')
+    print(f'Trainset quantiles: {trainset.quantiles}')
     print('Trainset balance')
     dataset_balance(param, trainset)
     print(f'Testset length: {len(testset)}')

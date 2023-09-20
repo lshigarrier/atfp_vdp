@@ -1,6 +1,5 @@
 import os
 import math
-import pickle
 import torch
 import numpy as np
 from vdp import loss_vdp
@@ -65,20 +64,25 @@ def test(param, device, testloader, model):
 
             t += pred.shape[0]
             if param['vdp']:
-                nll, kl = loss_vdp(prob, var_prob, y, model, param, device)
+                nll, kl, class_nll = loss_vdp(prob, var_prob, y, model, param, device)
                 loss = nll + param['kl_factor']*kl
             else:
                 loss = oce(prob, y, param, device)
             test_list.append(loss.item())
             if param['dataset'] == 'pirats':
                 y         = y[:, 1:, :]
-                rmse     += ((pred - y)**2).float().sum().item()
-            correct     = torch.eq(pred, y)
-            tot_corr   += correct.float().sum().item()
-            tot_num    += y.numel()
+                mask      = y.ne(-1)
+                rmse     += ((pred[mask] - y[mask])**2).float().sum().item()
+                correct   = torch.eq(pred[mask], y[mask])
+                tot_corr += correct.float().sum().item()
+                tot_num  += mask.int().sum().item()
+            else:
+                correct = torch.eq(pred, y)
+                tot_corr += correct.float().sum().item()
+                tot_num += y.numel()
             if param['vdp']:
-                var_list[0] = [*var_list, *var[correct].flatten().detach().tolist()]
-                var_list[1] = [*var_list, *var[~correct].flatten().detach().tolist()]
+                var_list[0] = [*var_list, *var[mask].flatten()[correct].detach().tolist()]
+                var_list[1] = [*var_list, *var[mask].flatten()[~correct].detach().tolist()]
             if idx % max(int(len(testloader)/4), 1) == 0:
                 if idx != len(testloader)-1:
                     total = idx*param['batch_size']

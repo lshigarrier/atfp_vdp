@@ -1,0 +1,109 @@
+/home/loic/miniconda3/envs/ml/lib/python3.9/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: libjpeg.so.8: cannot open shared object file: No such file or directory
+  warn(f"Failed to load image Python extension: {e}")
+name: vdp18
+model: weights.pt
+seed: 1
+gpu_number: None
+load: True
+pretrained: False
+pretrain: pretrain.pt
+average: True
+var_range: None
+dim: [4, 4]
+emb: [64]
+vdp: True
+residual: independence
+batch_size: 64
+optimizer: adam
+learning_rate: 0.01
+Tmax: 10
+l2_reg: 0.0
+kl_factor: 1e-08
+focus: 2
+balance: True
+epochs: 50
+stop: 3
+workers: 8
+clip: 10
+tol: 1e-06
+var_init: 1e-06
+dataset: pirats
+nb_classes: 3
+path: ./data/20200718_C_CONV.feather
+split_ratio: 0.1
+T_in: 280
+T_out: 40
+nb_lon: 50
+nb_lat: 50
+nb_alt: 5
+state_dim: 6
+max_ac: 674
+weights: [1.0, 18.66, 18.66]
+n_patches: 7
+patch_size: 4
+predict_spot: False
+spot: [42, 17, 3]
+Preprocessing training set
+Building outputs
+Preprocessing done
+Preprocessing test set
+Building outputs
+Preprocessing done
+Mins
+idac         0.000000
+time        60.000000
+lon         38.977399
+lat         -8.025444
+alt      10100.000000
+speed      148.946299
+head      -179.874900
+vz       -7985.000000
+cong         0.000000
+dtype: float64
+Maxs
+idac      8010.000000
+time     45270.000000
+lon         50.272926
+lat          6.904064
+alt      47000.000000
+speed      530.019811
+head       180.000000
+vz        4640.000000
+cong       146.168758
+dtype: float64
+Nb of trajs: 6992
+Max nb of a/c: 674
+Nb of rows: 1105935
+Nb of timestamps: 3015
+Nb of sequences: 2696
+Trainset length: 1278
+Trainset quantiles: [0.0008148829315761864]
+Trainset balance
+Class 0: 1885432 ; 90.32%
+Class 1: 101029 ; 4.84%
+Class 2: 101029 ; 4.84%
+Weight 0: 1.00
+Weight 1: 18.66
+Weight 2: 18.66
+Testset length: 142
+Testset balance
+Class 0: 551052 ; 81.67%
+Class 1: 61824 ; 9.16%
+Class 2: 61824 ; 9.16%
+Weight 0: 1.00
+Weight 1: 8.91
+Weight 2: 8.91
+Hot-spots
+idx_lon  idx_lat  idx_alt
+39.0     26.0     3.0        176.484551
+28.0     15.0     3.0        175.660700
+36.0     24.0     3.0        169.420162
+34.0     26.0     3.0        168.910806
+24.0     36.0     3.0        168.475940
+35.0     28.0     3.0        163.624606
+39.0     27.0     3.0        161.639816
+21.0     19.0     3.0        157.205529
+40.0     26.0     3.0        149.967411
+38.0     27.0     3.0        146.552012
+Name: cong, dtype: float64
+Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.

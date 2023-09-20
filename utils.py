@@ -36,6 +36,7 @@ def oce(probs, target, param, device):
     """
     probs  = probs.clamp(param['tol'], 1-param['tol'])
     target = target[:, 1:, :]
+    nb_total, coef = 0, 0
     if param['balance']:
         nb_total = target.ne(-1).int().sum().item()
         coef     = torch.eq(target, 0)
@@ -92,6 +93,7 @@ def initialize(param, device, train=True):
         transforms.RandomRotation(degrees=45),
         transforms.ToTensor()
     ])
+    trainset = None
     if train:
         if param['dataset'] == 'pirats':
             trainset = TsagiSet(param, train=True)
@@ -106,7 +108,7 @@ def initialize(param, device, train=True):
     else:
         trainloader = [0]
     if param['dataset'] == 'pirats':
-        testset = TsagiSet(param, train=False)
+        testset = TsagiSet(param, train=False, quantiles=trainset.quantiles)
     elif param['dataset'] == 'mnist':
         testset = datasets.MNIST('./data/mnist', train=False, transform=transforms.ToTensor())
     elif param['dataset'] == 'fashion':

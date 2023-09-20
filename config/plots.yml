@@ -15,6 +15,5 @@ epochs        : 24
 # dataset
 
 # nb of classes
-nb_classes  : 3
-
-
+nb_classes   : 3
+predict_spot : False

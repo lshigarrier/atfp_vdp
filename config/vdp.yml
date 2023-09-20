@@ -38,7 +38,7 @@ kl_factor     : 1.e-8
 # parameter 'gamma' in focal loss
 focus         : 2
 # balance each batch by removing elements from class 0
-balance       : True
+balance       : False
 epochs        : 50
 # test loss increase for early stopping
 stop          : 3
@@ -55,7 +55,7 @@ var_init      : 1.e-6
 
 dataset     : pirats  # pirats # mnist # fashion
 # nb of classes
-nb_classes  : 10
+nb_classes  : 3
 
 # pirats
 
@@ -63,9 +63,9 @@ path        : ./data/20200718_C_CONV.feather  # ./data/20200718_C_CONV.feather #
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length
-T_in        : 280
+T_in        : 40
 # output sequence length
-T_out       : 40
+T_out       : 4
 # nb of longitude steps
 nb_lon      : 50
 # nb of latitude steps
@@ -88,7 +88,7 @@ patch_size : 4
 
 # Hot-spot congestion prediction
 
-predict_spot : False
+predict_spot : True
 # hot-spot int_lon, int_lat, int_alt
-spot         : [42, 17, 3]
+spot         : [39, 26, 3]
 

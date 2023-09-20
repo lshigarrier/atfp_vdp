@@ -36,11 +36,16 @@ def loss_vdp(probs, var_prob, target, model, param, device):
     # Compute the expected negative log-likelihood
     probs   = no_nan(probs, param['tol']).clamp(min=param['tol'], max=1-param['tol'])
 
+    class_nll  = []
+    class_mask = []
     if param['dataset'] == 'pirats':
         target  = target[:, 1:, :]
+        nb_total, coef = 0, 0
         if param['balance']:
             nb_total = target.ne(-1).int().sum().item()
             coef     = torch.eq(target, 0)
+        for i in range(param['nb_classes']):
+            class_mask.append(target.eq(i))
         mask     = target.ne(-1).int()
         target   = mask*target
         mask     = mask.unsqueeze(-1)
@@ -64,21 +69,30 @@ def loss_vdp(probs, var_prob, target, model, param, device):
                 coef[index.t().tolist()] = False
                 coef = coef.masked_fill(coef, 0).masked_fill(~coef, 1)
                 nll  = nll*coef
-        shapes = probs.shape
-        nll = nll.sum()/(shapes[0]*shapes[1]*shapes[2])
+        shapes    = probs.shape
+        normalize = shapes[0]*shapes[1]*shapes[2]
+        for i in range(param['nb_classes']):
+            class_nll.append(nll[class_mask[i]].sum()/normalize)
+        nll = nll.sum()/normalize
 
     elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':
+        for i in range(param['nb_classes']):
+            class_mask.append(target.eq(i))
         target = F.one_hot(target, num_classes=param['nb_classes'])
         var_prob = clamp_nan(var_prob, param['tol'])
         inv_var = torch.div(1, var_prob + param['tol'])
         nll = no_nan((torch.log(var_prob + param['tol']) + (target - probs)**2*inv_var),
                      param['tol']).sum(dim=-1)
-        nll = nll.sum()/probs.shape[0]
+        shapes    = probs.shape
+        normalize = shapes[0]
+        for i in range(param['nb_classes']):
+            class_nll.append(nll[class_mask[i]].sum().item()/normalize)
+        nll = nll.sum()/normalize
 
     else:
         raise NotImplementedError
 
-    return nll, kl
+    return nll, kl, class_nll
 
 
 def quadratic_vdp(x, var_x, y, var_y, tol=1e-3):
