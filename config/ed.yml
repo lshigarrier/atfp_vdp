@@ -39,6 +39,8 @@ kl_factor     : 1.e-8
 focus         : 2
 # balance each batch by removing elements from class 0
 balance       : True
+# No class 0
+no_zero       : True
 epochs        : 50
 # test loss increase for early stopping
 stop          : 3

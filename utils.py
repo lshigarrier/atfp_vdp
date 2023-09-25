@@ -41,6 +41,8 @@ def oce(probs, target, param, device):
         nb_total = target.ne(-1).int().sum().item()
         coef     = torch.eq(target, 0)
     mask   = target.ne(-1).int()
+    if param['no_zero']:
+        mask = mask*target.ne(0).int()
     target = mask*target
     weight = torch.take(torch.tensor(param['weights']).to(device), target)
     target = F.one_hot(target, num_classes=param['nb_classes'])
@@ -94,15 +96,13 @@ def initialize(param, device, train=True):
         transforms.ToTensor()
     ])
     trainset = None
+    if param['dataset'] == 'pirats':
+        trainset = TsagiSet(param, train=True)
     if train:
-        if param['dataset'] == 'pirats':
-            trainset = TsagiSet(param, train=True)
-        elif param['dataset'] == 'mnist':
+        if param['dataset'] == 'mnist':
             trainset = datasets.MNIST('./data/mnist', train=True, download=True, transform=transfos)
         elif param['dataset'] == 'fashion':
             trainset = datasets.FashionMNIST('./data/fashion', train=True, download=True, transform=transfos)
-        else:
-            raise NotImplementedError
         trainloader = DataLoader(trainset, batch_size=param['batch_size'],
                                  shuffle=True, pin_memory=True, num_workers=param['workers'])
     else:

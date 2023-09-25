@@ -47,11 +47,15 @@ def loss_vdp(probs, var_prob, target, model, param, device):
         for i in range(param['nb_classes']):
             class_mask.append(target.eq(i))
         mask     = target.ne(-1).int()
+        if param['no_zero']:
+            mask = mask*target.ne(0).int()
         target   = mask*target
         mask     = mask.unsqueeze(-1)
         weights  = torch.take(torch.tensor(param['weights']).to(device), target).unsqueeze(-1)
         target   = F.one_hot(target, num_classes=param['nb_classes'])
         p_true   = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze().unsqueeze(-1)
+        if param['predict_spot']:
+            p_true = p_true.unsqueeze(-1)
         var_prob = clamp_nan(var_prob, param['tol'])
         inv_var  = torch.div(1, var_prob + param['tol'])
         nll      = no_nan(mask*weights*(1 - p_true)**param['focus']*
@@ -72,7 +76,7 @@ def loss_vdp(probs, var_prob, target, model, param, device):
         shapes    = probs.shape
         normalize = shapes[0]*shapes[1]*shapes[2]
         for i in range(param['nb_classes']):
-            class_nll.append(nll[class_mask[i]].sum()/normalize)
+            class_nll.append(nll[class_mask[i]].sum().item()/normalize)
         nll = nll.sum()/normalize
 
     elif param['dataset'] == 'mnist' or param['dataset'] == 'fashion':

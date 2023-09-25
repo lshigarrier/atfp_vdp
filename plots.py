@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 import pickle
+import io
 import torch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -17,8 +18,9 @@ def moving_average(array, window_size):
     array = [*array, *[array[-1] for _ in range(window_size-1)]]
     array = np.array(array)
     while i < len(array) - window_size + 1:
-        geo_mean = np.exp(np.log(array[i: i + window_size]).mean())
-        moving_averages.append(geo_mean)
+        # mean = np.exp(np.log(array[i: i + window_size]).mean())
+        mean = array[i: i + window_size].mean()
+        moving_averages.append(mean)
         i += 1
     return moving_averages
 
@@ -87,7 +89,7 @@ def plot_one_img(tsr):
     return fig
 
 
-def plot_pred(preds, truth, nb_classes=5, t_init=70):
+def plot_pred(preds, truth, no_zero=False, nb_classes=5, t_init=70):
     """
     Plot the predicted congestion and the true congestion
     preds: nb_times x nb_lon x nb_lat
@@ -97,6 +99,8 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
     nb_lon   = preds.shape[1]
     nb_lat   = preds.shape[2]
     mask     = truth[0].ne(-1).int()
+    if no_zero:
+        mask = mask*truth[t_init].ne(0).int()
 
     # Create colormap
     colors    = plt.cm.jet
@@ -128,8 +132,11 @@ def plot_pred(preds, truth, nb_classes=5, t_init=70):
 
     def update_eval(val):
         time = int(slider.val)
-        im_true.set_data(mask*truth[time, ...])
-        im_pred.set_data(mask*preds[time, ...])
+        new_mask = truth[0].ne(-1).int()
+        if no_zero:
+            new_mask = new_mask*truth[t_init].ne(0).int()
+        im_true.set_data(new_mask*truth[time, ...])
+        im_pred.set_data(new_mask*preds[time, ...])
         plt.draw()
 
     slider.on_changed(update_eval)
@@ -208,79 +215,101 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
     return fig, slider
 
 
+def get_ymax(array_list):
+    ymax = array_list[0].mean()
+    for i in range (1, len(array_list)):
+        ymax = max(ymax, array_list[i].mean())
+    ymax = ymax*2
+    if np.isnan(ymax):
+        ymax = None
+    return ymax
+
+
+class CPU_Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == 'torch.storage' and name == '_load_from_bytes':
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+        else: return super().find_class(module, name)
+
+
 def main():
     param = load_yaml('plots')
 
     # Load data
-    preds = torch.load(f'models/{param["name"]}/preds.pickle')
-    truth = torch.load(f'models/{param["name"]}/truth.pickle')
+    preds, truth = [], []
+    if param['dataset'] == 'pirats':
+        preds = torch.load(f'models/{param["name"]}/preds.pickle')
+        truth = torch.load(f'models/{param["name"]}/truth.pickle')
 
-    window = 50
+    window = 1000
     with open(f'models/{param["name"]}/loss.pickle', 'rb') as f:
-        loss_full = moving_average(pickle.load(f), window)
+        loss_full = pickle.load(f)
+        loss_full = np.array(moving_average(loss_full, window))
     with open(f'models/{param["name"]}/loss_val.pickle', 'rb') as f:
-        loss_val  = pickle.load(f)
+        loss_val = pickle.load(f)
+        loss_val = np.array(loss_val)
     with open(f'models/{param["name"]}/nll.pickle', 'rb') as f:
-        nll_full  = moving_average(pickle.load(f), window)
+        nll_full = pickle.load(f)
+        nll_full = np.array(moving_average(nll_full, window))
     with open(f'models/{param["name"]}/nll_val.pickle', 'rb') as f:
-        nll_val   = pickle.load(f)
+        nll_val = pickle.load(f)
+        nll_val = np.array(nll_val)
     with open(f'models/{param["name"]}/kl.pickle', 'rb') as f:
-        kl_full   = np.array(moving_average(pickle.load(f), window))
-    '''
+        kl_full = pickle.load(f)
+        kl_full = np.array(moving_average(kl_full, window))
     with open(f'models/{param["name"]}/class.pickle', 'rb') as f:
         class_full = pickle.load(f)
+        # class_full = CPU_Unpickler(f).load()
     for i in range(len(class_full)):
-        class_full[i] = moving_average(class_full[i], window)
-    '''
+        # class_full[i] = [_.item() for _ in class_full[i]]
+        class_full[i] = np.array(moving_average(class_full[i], window))
 
     # Plots
-    truth_flat = truth.flatten()
-    preds_flat = preds.flatten()
-    mask = truth_flat.ne(-1)
-    truth_flat = truth_flat[mask]
-    preds_flat = preds_flat[mask]
-    cm = confusion_matrix(truth_flat, preds_flat)
-    ConfusionMatrixDisplay(cm).plot()
+    if param['dataset'] == 'pirats':
+        truth_flat = truth.flatten()
+        preds_flat = preds.flatten()
+        mask = truth_flat.ne(-1)
+        truth_flat = truth_flat[mask]
+        preds_flat = preds_flat[mask]
+        cm = confusion_matrix(truth_flat, preds_flat)
+        ConfusionMatrixDisplay(cm).plot()
     figs = []
 
     if param['vdp']:
         varis = torch.load(f'models/{param["name"]}/varis.pickle')
-        if param['predict_spot']:
-            figs.append(plot_spot(preds, truth, varis))
-        else:
-            figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
-        '''
+        if param['dataset'] == 'pirats':
+            if param['predict_spot']:
+                figs.append(plot_spot(preds, truth, varis))
+            else:
+                figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
         var_correct = torch.load(f'models/{param["name"]}/var_corr.pickle')
         var_incorr  = torch.load(f'models/{param["name"]}/var_incorr.pickle')
         figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
                               xlabel='Variance', ylabel='Numbers'))
         figs.append(plot_hist(var_incorr, bins=50, title='Incorrectly classified',
                               xlabel='Variance', ylabel='Numbers'))
-        '''
     else:
-        if param['predict_spot']:
-            figs.append(plot_spot(preds, truth))
-        else:
-            figs.append(plot_pred(preds, truth, param['nb_classes']))
+        if param['dataset'] == 'pirats':
+            if param['predict_spot']:
+                figs.append(plot_spot(preds, truth))
+            else:
+                figs.append(plot_pred(preds, truth, param['nb_classes']))
 
     print(f'KL factor: {param["kl_factor"]}')
+    ymax = get_ymax([loss_full, loss_val])
     figs.append(plot_curves([loss_full, loss_val], ['Training', 'Validation'],
-                            'Full loss', 'Epoch', 'Full loss', stop=param['epochs']))
+                            'Full loss', 'Epoch', 'Full loss', ylim=(0, ymax), stop=param['epochs']))
+    ymax = get_ymax([nll_full, nll_val])
     figs.append(plot_curves([nll_full, nll_val], ['Training', 'Validation'],
-                            'NLL', 'Epoch', 'Loss', stop=param['epochs']))
+                            'NLL', 'Epoch', 'Loss', ylim=(0, ymax), stop=param['epochs']))
     figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Epoch', 'Loss', stop=param['epochs']))
-    n    = int(len(nll_full)/2)
-    ymax = max(nll_full[n], param['kl_factor']*kl_full[n])
-    ymax = ymax*1.1
-    if np.isnan(ymax):
-        ymax = None
+    ymax = get_ymax([nll_full, param['kl_factor']*kl_full])
     figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
                             ['nll', 'factor*kl'], 'NLL and factor*KL', 'Epoch', 'Loss',
                             ylim=(0, ymax), stop=param['epochs']))
-    '''
+    ymax = get_ymax(class_full)
     figs.append(plot_curves(class_full, [f'Class {i}' for i in range(len(class_full))],
-                            'NLL for each class', 'Epoch', 'Loss', stop=param['epochs']))
-    '''
+                            'NLL for each class', 'Epoch', 'Loss', ylim=(0, ymax), stop=param['epochs']))
     plt.show()
 
 

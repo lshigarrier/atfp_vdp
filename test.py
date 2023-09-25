@@ -72,6 +72,8 @@ def test(param, device, testloader, model):
             if param['dataset'] == 'pirats':
                 y         = y[:, 1:, :]
                 mask      = y.ne(-1)
+                if param['no_zero']:
+                    mask = mask*y.ne(0)
                 rmse     += ((pred[mask] - y[mask])**2).float().sum().item()
                 correct   = torch.eq(pred[mask], y[mask])
                 tot_corr += correct.float().sum().item()
@@ -81,8 +83,12 @@ def test(param, device, testloader, model):
                 tot_corr += correct.float().sum().item()
                 tot_num += y.numel()
             if param['vdp']:
-                var_list[0] = [*var_list, *var[mask].flatten()[correct].detach().tolist()]
-                var_list[1] = [*var_list, *var[mask].flatten()[~correct].detach().tolist()]
+                if param['dataset'] == 'pirats':
+                    var_list[0] = [*var_list[0], *var[mask].flatten()[correct].detach().tolist()]
+                    var_list[1] = [*var_list[1], *var[mask].flatten()[~correct].detach().tolist()]
+                else:
+                    var_list[0] = [*var_list[0], *var.flatten()[correct].detach().tolist()]
+                    var_list[1] = [*var_list[1], *var.flatten()[~correct].detach().tolist()]
             if idx % max(int(len(testloader)/4), 1) == 0:
                 if idx != len(testloader)-1:
                     total = idx*param['batch_size']
@@ -103,14 +109,20 @@ def test(param, device, testloader, model):
 
 
 def save_plot(param, preds, truth, varis, var_list):
+    print('Saving predictions')
     torch.save(preds, f'models/{param["name"]}/preds.pickle')
+    print('Saving ground truth')
     torch.save(truth, f'models/{param["name"]}/truth.pickle')
     if param['vdp']:
+        print('Saving variances')
         torch.save(varis, f'models/{param["name"]}/varis.pickle')
     var_correct = np.array(var_list[0])
     var_incorr  = np.array(var_list[1])
+    print('Saving correct variances')
     torch.save(var_correct, f'models/{param["name"]}/var_corr.pickle')
+    print('Saving incorrect variances')
     torch.save(var_incorr, f'models/{param["name"]}/var_incorr.pickle')
+    print('Done')
 
 
 def one_test_run(param):

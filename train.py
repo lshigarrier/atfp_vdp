@@ -71,6 +71,8 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
             if param['dataset'] == 'pirats':
                 y     = y[:, 1:, :]
                 mask  = y.ne(-1)
+                if param['no_zero']:
+                    mask = mask*y.ne(0)
                 rmse += ((pred[mask] - y[mask])**2).float().sum().item()
                 tot_corr += torch.eq(pred[mask], y[mask]).float().sum().item()
                 tot_num  += mask.int().sum().item()
@@ -104,7 +106,8 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
     tac        = time.time()
     best_loss  = float('inf')
     best_epoch = 0
-    loss_full, loss_full_val, nll_full, nll_full_val, kl_full, class_full = [], [], [], [], [], []
+    loss_full, loss_full_val, nll_full, nll_full_val, kl_full = [], [], [], [], []
+    class_full = [[] for _ in range(param['nb_classes'])]
     for epoch in range(1, param['epochs'] + 1):
         tic       = time.time()
         res = train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch)
@@ -114,15 +117,18 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
         nll_full      = [*nll_full, *nll_list]
         nll_full_val  = [*nll_full_val, *nll_val]
         kl_full       = [*kl_full, *kl_list]
-        class_full    = [*class_full, *class_nll_list]
+        for i in range(len(class_full)):
+            class_full[i] = [*class_full[i], *class_nll_list[i]]
         print(f'Epoch training time (s): {time.time() - tic}')
         if test_loss < best_loss:
             best_loss  = test_loss
             best_epoch = epoch
+            print('Saving model')
             torch.save(model.state_dict(), f'models/{param["name"]}/weights.pt')
         elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
             break
+    print('Saving final model')
     torch.save(model.state_dict(), f'models/{param["name"]}/final.pt')
     print(f'Best epoch: {best_epoch}')
     print(f'Best loss: {best_loss:.6f}')
@@ -159,16 +165,22 @@ def one_run(param):
 
     # Save
     with open( f'models/{param["name"]}/loss.pickle', 'wb') as f:
+        print('Saving train loss list')
         pickle.dump(loss_full, f)
     with open( f'models/{param["name"]}/loss_val.pickle', 'wb') as f:
+        print('Saving val loss list')
         pickle.dump(loss_full_val, f)
     with open( f'models/{param["name"]}/nll.pickle', 'wb') as f:
+        print('Saving train nll list')
         pickle.dump(nll_full, f)
     with open( f'models/{param["name"]}/nll_val.pickle', 'wb') as f:
+        print('Saving val nll list')
         pickle.dump(nll_full_val, f)
     with open( f'models/{param["name"]}/kl.pickle', 'wb') as f:
+        print('Saving kl list')
         pickle.dump(kl_full, f)
     with open( f'models/{param["name"]}/class.pickle', 'wb') as f:
+        print('Saving nll by class')
         pickle.dump(class_full, f)
 
     # Test
