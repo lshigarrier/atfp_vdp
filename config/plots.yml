@@ -16,4 +16,5 @@ epochs        : 50
 
 dataset      : pirats
 nb_classes   : 3
+no_zero      : False
 predict_spot : False

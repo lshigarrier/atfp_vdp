@@ -35,7 +35,10 @@ def test(param, device, testloader, model):
             if param['vdp']:
                 pred, prob, var_prob = model.inference(x)
                 indexes = pred.unsqueeze(-1).expand(*pred.shape, param['nb_classes']).long()
-                var     = torch.take_along_dim(var_prob, indexes, dim=-1)[..., 0]
+                if param['no_zero']:
+                    var = torch.take_along_dim(var_prob, indexes-1, dim=-1)[..., 0]
+                else:
+                    var = torch.take_along_dim(var_prob, indexes, dim=-1)[..., 0]
             else:
                 pred, prob = model.inference(x)
 
@@ -134,6 +137,7 @@ def one_test_run(param):
 
     # Declare CPU/GPU usage
     if param['gpu_number'] is not None:
+        # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
         os.environ['CUDA_DEVICE_ORDER']    = 'PCI_BUS_ID'
         os.environ['CUDA_VISIBLE_DEVICES'] = param['gpu_number']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

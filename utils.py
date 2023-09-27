@@ -46,6 +46,8 @@ def oce(probs, target, param, device):
     target = mask*target
     weight = torch.take(torch.tensor(param['weights']).to(device), target)
     target = F.one_hot(target, num_classes=param['nb_classes'])
+    if param['no_zero']:
+        target = target[..., 1:]
     probs  = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze()
     loss   = -mask*weight*(1 - probs)**param['focus']*torch.log(probs)
     # Remove elements from the loss by multiplying them by 0

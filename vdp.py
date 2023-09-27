@@ -45,14 +45,21 @@ def loss_vdp(probs, var_prob, target, model, param, device):
             nb_total = target.ne(-1).int().sum().item()
             coef     = torch.eq(target, 0)
         for i in range(param['nb_classes']):
-            class_mask.append(target.eq(i))
+            if param['no_zero']:
+                class_mask.append(target.eq(i+1))
+            else:
+                class_mask.append(target.eq(i))
         mask     = target.ne(-1).int()
         if param['no_zero']:
             mask = mask*target.ne(0).int()
         target   = mask*target
         mask     = mask.unsqueeze(-1)
         weights  = torch.take(torch.tensor(param['weights']).to(device), target).unsqueeze(-1)
-        target   = F.one_hot(target, num_classes=param['nb_classes'])
+        if param['no_zero']:
+            target   = F.one_hot(target, num_classes=param['nb_classes']+1)
+            target = target[..., 1:]
+        else:
+            target = F.one_hot(target, num_classes=param['nb_classes'])
         p_true   = torch.matmul(target.unsqueeze(-2).float(), probs.unsqueeze(-1)).squeeze().unsqueeze(-1)
         if param['predict_spot']:
             p_true = p_true.unsqueeze(-1)

@@ -269,6 +269,7 @@ class TransformerED_VDP(nn.Module):
         else:
             self.d = param['nb_lon']*param['nb_lat']
         self.nb_class = param['nb_classes']
+        self.no_zero  = param['no_zero']
         self.device   = device
         self.encoder  = EncoderVDP(param, device)
         self.decoder  = DecoderVDP(param, device)
@@ -288,6 +289,8 @@ class TransformerED_VDP(nn.Module):
             prob[:,   t, :]   = y[:, t, ...]
             var_prob[:, t, :] = var_y[:, t, ...]
             pred[:, t+1, :]   = y[:, t, ...].argmax(dim=2)
+            if self.no_zero:
+                pred[:, t+1, :] = pred[:, t+1, :] + 1
         return pred[:, 1:, :], prob, var_prob
 
 

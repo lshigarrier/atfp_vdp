@@ -143,7 +143,7 @@ def plot_pred(preds, truth, no_zero=False, nb_classes=5, t_init=70):
     return fig, slider
 
 
-def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
+def plot_pred_vdp(preds, truth, varis, no_zero=False, nb_classes=5, var_range=None, t_init=70):
     """
     Plot the predicted congestion, the true congestion, and the variance
     preds: nb_times x nb_lon x nb_lat
@@ -153,6 +153,8 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
     nb_lon   = preds.shape[1]
     nb_lat   = preds.shape[2]
     mask     = truth[0].ne(-1).int()
+    if no_zero:
+        mask = mask*truth[t_init].ne(0).int()
 
     # Describe variances
     print(f'Statistics of predicted variances: {scipy.stats.describe(varis.flatten())}')
@@ -205,24 +207,33 @@ def plot_pred_vdp(preds, truth, varis, nb_classes=5, var_range=None, t_init=70):
 
     def update_eval(val):
         time = int(slider.val)
-        im_true.set_data(mask*truth[time, ...])
-        im_pred.set_data(mask*preds[time, ...])
-        im_var.set_data(mask*varis[time, ...])
-        im_err.set_data(mask*torch.abs(preds[time, ...] - truth[time, ...]))
+        new_mask = truth[0].ne(-1).int()
+        if no_zero:
+            new_mask = new_mask * truth[t_init].ne(0).int()
+        im_true.set_data(new_mask*truth[time, ...])
+        im_pred.set_data(new_mask*preds[time, ...])
+        im_var.set_data(new_mask*varis[time, ...])
+        im_err.set_data(new_mask*torch.abs(preds[time, ...] - truth[time, ...]))
         plt.draw()
 
     slider.on_changed(update_eval)
     return fig, slider
 
 
-def get_ymax(array_list):
+def get_ylim(array_list):
+    ymin = array_list[0].mean()
     ymax = array_list[0].mean()
     for i in range (1, len(array_list)):
+        ymin = min(ymin, array_list[i].mean())
         ymax = max(ymax, array_list[i].mean())
-    ymax = ymax*2
+    rang = ymax - ymin
+    ymax = ymax + rang
+    ymin = ymin - rang
     if np.isnan(ymax):
         ymax = None
-    return ymax
+    if np.isnan(ymin):
+        ymin = None
+    return ymin, ymax
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -234,6 +245,10 @@ class CPU_Unpickler(pickle.Unpickler):
 
 def main():
     param = load_yaml('plots')
+    if param['no_zero']:
+        nb_class = param['nb_classes'] + 1
+    else:
+        nb_class = param['nb_classes']
 
     # Load data
     preds, truth = [], []
@@ -269,6 +284,8 @@ def main():
         truth_flat = truth.flatten()
         preds_flat = preds.flatten()
         mask = truth_flat.ne(-1)
+        if param['no_zero']:
+            mask = mask*truth_flat.ne(0)
         truth_flat = truth_flat[mask]
         preds_flat = preds_flat[mask]
         cm = confusion_matrix(truth_flat, preds_flat)
@@ -281,7 +298,7 @@ def main():
             if param['predict_spot']:
                 figs.append(plot_spot(preds, truth, varis))
             else:
-                figs.append(plot_pred_vdp(preds, truth, varis, param['nb_classes'], param['var_range']))
+                figs.append(plot_pred_vdp(preds, truth, varis, param['no_zero'], nb_class, param['var_range']))
         var_correct = torch.load(f'models/{param["name"]}/var_corr.pickle')
         var_incorr  = torch.load(f'models/{param["name"]}/var_incorr.pickle')
         figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
@@ -293,23 +310,24 @@ def main():
             if param['predict_spot']:
                 figs.append(plot_spot(preds, truth))
             else:
-                figs.append(plot_pred(preds, truth, param['nb_classes']))
+                figs.append(plot_pred(preds, truth, param['no_zero'], nb_class))
 
     print(f'KL factor: {param["kl_factor"]}')
-    ymax = get_ymax([loss_full, loss_val])
     figs.append(plot_curves([loss_full, loss_val], ['Training', 'Validation'],
-                            'Full loss', 'Epoch', 'Full loss', ylim=(0, ymax), stop=param['epochs']))
-    ymax = get_ymax([nll_full, nll_val])
+                            'Full loss', 'Epoch', 'Full loss',
+                            ylim=get_ylim([loss_full, loss_val]), stop=param['epochs']))
     figs.append(plot_curves([nll_full, nll_val], ['Training', 'Validation'],
-                            'NLL', 'Epoch', 'Loss', ylim=(0, ymax), stop=param['epochs']))
+                            'NLL', 'Epoch', 'Loss', ylim= get_ylim([nll_full, nll_val]), stop=param['epochs']))
     figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Epoch', 'Loss', stop=param['epochs']))
-    ymax = get_ymax([nll_full, param['kl_factor']*kl_full])
     figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
                             ['nll', 'factor*kl'], 'NLL and factor*KL', 'Epoch', 'Loss',
-                            ylim=(0, ymax), stop=param['epochs']))
-    ymax = get_ymax(class_full)
-    figs.append(plot_curves(class_full, [f'Class {i}' for i in range(len(class_full))],
-                            'NLL for each class', 'Epoch', 'Loss', ylim=(0, ymax), stop=param['epochs']))
+                            ylim=get_ylim([nll_full, param['kl_factor']*kl_full]), stop=param['epochs']))
+    if param['no_zero']:
+        class_legend = [f'Class {i+1}' for i in range(len(class_full))]
+    else:
+        class_legend = [f'Class {i}' for i in range(len(class_full))]
+    figs.append(plot_curves(class_full, class_legend, 'NLL for each class', 'Epoch', 'Loss',
+                            ylim=get_ylim(class_full), stop=param['epochs']))
     plt.show()
 
 

@@ -18,7 +18,13 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
 
         # Forward pass
         if param['vdp']:
-            probs, var_prob = model(x, y)
+            if param['no_zero']:
+                y_       = y.clone()
+                mask     = y_.ne(-1)*y_.ne(0)
+                y_[mask] = torch.randint(1, param['nb_classes']+1, y_[mask].shape).to(device)
+                probs, var_prob = model(x, y_)
+            else:
+                probs, var_prob = model(x, y)
             nll, kl, class_nll = loss_vdp(probs, var_prob, y, model, param, device)
             loss = nll + param['kl_factor']*kl
             nll_list.append(nll.item())

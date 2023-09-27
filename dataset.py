@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import torch
@@ -32,6 +33,49 @@ def tsagi2frame(input_path='./data/20200718_C.TSAGI_COMP1', output_path='./data/
     data = pd.DataFrame(data_list, columns=['idac', 'time', 'lon', 'lat', 'alt', 'speed', 'head', 'vz', 'cong'])
     data.to_feather(output_path)
     print('... done!')
+
+
+def read_traj(path):
+    data_list = []
+    with open(path) as f:
+        # The first line is the names of the columns
+        _ = f.readline()
+        line = f.readline()
+        while line != "":
+            point = line.split(',')
+            # 0->id, 2->time, 4->lon, 3->lat, 5->altitude, 9->vtas, 7->heading, 8->roc
+            try:
+                point = [float(point[0]),
+                         float(point[2]),
+                         float(point[4]),
+                         float(point[3]),
+                         float(point[5]),
+                         float(point[9]),
+                         float(point[7]),
+                         float(point[8])]
+            except IndexError:
+                print(path)
+                print(line)
+                print(point)
+                return []
+            data_list.append(point)
+            line = f.readline()
+    return data_list
+
+
+def read_all_traj(dir_path='./data/aircraftEnvOutput', output_path='./data/20180901.feather'):
+    data_list = []
+    nb_trajs  = 0
+    for filename in os.listdir(dir_path):
+        nb_trajs += 1
+        path = os.path.join(dir_path, filename)
+        data_list = [*data_list, *read_traj(path)]
+        if nb_trajs % 1000 == 0:
+            print(f'Nb processed trajs: {nb_trajs}')
+    print(f'Nb of trajectories: {nb_trajs}')
+    data = pd.DataFrame(data_list, columns=['idac', 'time', 'lon', 'lat', 'alt', 'speed', 'head', 'vz'])
+    data.to_feather(output_path)
+    return data
 
 
 class TsagiSet(Dataset):
@@ -89,7 +133,12 @@ class TsagiSet(Dataset):
         self.data['idx_alt'] = (self.data['alt']*(self.nb_alt - 1)).round()
         self.time_starts, self.timestamps = self.get_time_slices()
         print('Building outputs')
-        self.output_tensor = self.compute_output(param['nb_classes'])
+        # If no_zero is true, we still need to create the class 0 in output_tensor
+        if param['no_zero']:
+            nb_class = param['nb_classes'] + 1
+        else:
+            nb_class = param['nb_classes']
+        self.output_tensor = self.compute_output(nb_class)
         self.output_mask   = self.compute_mask()
         self.output_tensor = self.output_tensor.masked_fill(self.output_mask.eq(0), -1)
         print('Preprocessing done')
@@ -215,12 +264,16 @@ class TsagiSet(Dataset):
 def dataset_balance(param, tsagi):
     total = tsagi.output_tensor.ne(-1).int().sum().item()
     weights = []
-    for i in range(param['nb_classes']):
+    if param['no_zero']:
+        nb_class = param['nb_classes'] + 1
+    else:
+        nb_class = param['nb_classes']
+    for i in range(nb_class):
         count = torch.eq(tsagi.output_tensor, i).float().sum().item()
         print(f'Class {i}: {int(count)} ; {100.*count/total:.2f}%')
         weights.append(total/count)
     min_w = min(weights)
-    for i in range(param['nb_classes']):
+    for i in range(nb_class):
         print(f'Weight {i}: {weights[i]/min_w:.2f}')
 
 
@@ -233,6 +286,11 @@ def dataset_iterate(loader):
         print(y.shape)
         print(y.max().item())
         print(y.min().item())
+
+
+def explore_data():
+    data = read_all_traj()
+    print(data.head())
 
 
 def main():
@@ -267,4 +325,5 @@ def main():
 
 if __name__ == '__main__':
     # tsagi2frame()
-    main()
+    explore_data()
+    # main()
