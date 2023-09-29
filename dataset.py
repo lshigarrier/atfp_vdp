@@ -74,7 +74,9 @@ def read_all_traj(dir_path='./data/aircraftEnvOutput', output_path='./data/20180
             print(f'Nb processed trajs: {nb_trajs}')
     print(f'Nb of trajectories: {nb_trajs}')
     data = pd.DataFrame(data_list, columns=['idac', 'time', 'lon', 'lat', 'alt', 'speed', 'head', 'vz'])
+    print('Saving to feather ...')
     data.to_feather(output_path)
+    print('... done!')
     return data
 
 
@@ -289,8 +291,10 @@ def dataset_iterate(loader):
 
 
 def explore_data():
-    data = read_all_traj()
-    print(data.head())
+    from utils import load_yaml
+    param = load_yaml()
+
+    data = pd.read_feather(param['path'])
 
 
 def main():
@@ -325,5 +329,5 @@ def main():
 
 if __name__ == '__main__':
     # tsagi2frame()
-    explore_data()
-    # main()
+    # explore_data()
+    main()

@@ -15,11 +15,13 @@ from utils import load_yaml
 def moving_average(array, window_size):
     i = 0
     moving_averages = []
-    array = [*array, *[array[-1] for _ in range(window_size-1)]]
+    # array = [*array, *[array[-1] for _ in range(window_size-1)]]
     array = np.array(array)
-    while i < len(array) - window_size + 1:
+    # while i < len(array) - window_size + 1:
+    while i < len(array):
         # mean = np.exp(np.log(array[i: i + window_size]).mean())
-        mean = array[i: i + window_size].mean()
+        # mean = array[i: i + window_size].mean()
+        mean = array[i: i + min(window_size, len(array)-i)].mean()
         moving_averages.append(mean)
         i += 1
     return moving_averages
@@ -134,7 +136,7 @@ def plot_pred(preds, truth, no_zero=False, nb_classes=5, t_init=70):
         time = int(slider.val)
         new_mask = truth[0].ne(-1).int()
         if no_zero:
-            new_mask = new_mask*truth[t_init].ne(0).int()
+            new_mask = new_mask*truth[time].ne(0).int()
         im_true.set_data(new_mask*truth[time, ...])
         im_pred.set_data(new_mask*preds[time, ...])
         plt.draw()
@@ -209,7 +211,7 @@ def plot_pred_vdp(preds, truth, varis, no_zero=False, nb_classes=5, var_range=No
         time = int(slider.val)
         new_mask = truth[0].ne(-1).int()
         if no_zero:
-            new_mask = new_mask * truth[t_init].ne(0).int()
+            new_mask = new_mask*truth[time].ne(0).int()
         im_true.set_data(new_mask*truth[time, ...])
         im_pred.set_data(new_mask*preds[time, ...])
         im_var.set_data(new_mask*varis[time, ...])
@@ -256,7 +258,7 @@ def main():
         preds = torch.load(f'models/{param["name"]}/preds.pickle')
         truth = torch.load(f'models/{param["name"]}/truth.pickle')
 
-    window = 1000
+    window = 10
     with open(f'models/{param["name"]}/loss.pickle', 'rb') as f:
         loss_full = pickle.load(f)
         loss_full = np.array(moving_average(loss_full, window))

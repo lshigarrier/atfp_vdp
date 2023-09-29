@@ -141,7 +141,9 @@ def initialize(param, device, train=True):
         raise NotImplementedError
 
     # Set scheduler
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, param['Tmax']*len(trainloader))
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, param['Tmax']*len(trainloader))
+    # scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, total_iters=2*param['epochs'], power=2.0)
+    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.9, total_iters=param['epochs'])
 
     return trainloader, testloader, model, optimizer, scheduler
 

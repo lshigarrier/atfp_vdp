@@ -1,4 +1,4 @@
-name      : vdp19
+name      : vdp31
 # Variance scale range
 var_range : null
 
@@ -9,12 +9,12 @@ vdp      : True
 # training
 
 # l2 regularization hyperparameter in ELBO
-kl_factor     : 1.e-8
+kl_factor     : 1.e-6
 epochs        : 50
 
 # dataset
 
 dataset      : pirats
 nb_classes   : 3
-no_zero      : False
+no_zero      : True
 predict_spot : False

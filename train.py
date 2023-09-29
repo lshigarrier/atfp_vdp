@@ -9,7 +9,7 @@ from vdp import loss_vdp
 from test import test, save_plot
 
 
-def train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch):
+def train(param, device, trainloader, testloader, model, optimizer, epoch):
     loss_list, loss_val, nll_list, nll_val, kl_list = [], [], [], [], []
     class_nll_list = [[] for _ in range(param['nb_classes'])]
     for idx, (x, y) in enumerate(trainloader):
@@ -39,7 +39,6 @@ def train(param, device, trainloader, testloader, model, optimizer, scheduler, e
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), param['clip'])
         optimizer.step()
-        scheduler.step()
 
         loss_list.append(loss.item())
 
@@ -116,7 +115,13 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
     class_full = [[] for _ in range(param['nb_classes'])]
     for epoch in range(1, param['epochs'] + 1):
         tic       = time.time()
-        res = train(param, device, trainloader, testloader, model, optimizer, scheduler, epoch)
+
+        res = train(param, device, trainloader, testloader, model, optimizer, epoch)
+
+        # Update the learning rate scheduler
+        scheduler.step()
+        print(f'Learning rate: {scheduler.get_last_lr()}')
+
         test_loss, loss_list, loss_val, nll_list, nll_val, kl_list, class_nll_list = res
         loss_full     = [*loss_full, *loss_list]
         loss_full_val = [*loss_full_val, *loss_val]
@@ -125,7 +130,10 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
         kl_full       = [*kl_full, *kl_list]
         for i in range(len(class_full)):
             class_full[i] = [*class_full[i], *class_nll_list[i]]
+
         print(f'Epoch training time (s): {time.time() - tic}')
+
+        # Early stopping
         if test_loss < best_loss:
             best_loss  = test_loss
             best_epoch = epoch
@@ -134,6 +142,7 @@ def training(param, device, trainloader, testloader, model, optimizer, scheduler
         elif (test_loss - best_loss)/abs(best_loss) > param['stop']:
             print('Early stopping')
             break
+
     print('Saving final model')
     torch.save(model.state_dict(), f'models/{param["name"]}/final.pt')
     print(f'Best epoch: {best_epoch}')
