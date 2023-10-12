@@ -16,12 +16,15 @@ def moving_average(array, window_size):
     i = 0
     moving_averages = []
     # array = [*array, *[array[-1] for _ in range(window_size-1)]]
-    array = np.array(array)
+    # array = np.array(array)
     # while i < len(array) - window_size + 1:
-    while i < len(array):
+    n = len(array)
+    while i < n:
+        if i + window_size > n:
+            array.append(moving_averages[-1])
         # mean = np.exp(np.log(array[i: i + window_size]).mean())
-        # mean = array[i: i + window_size].mean()
-        mean = array[i: i + min(window_size, len(array)-i)].mean()
+        mean = np.array(array[i: i + window_size]).mean()
+        # mean = array[i: i + min(window_size, len(array)-i)].mean()
         moving_averages.append(mean)
         i += 1
     return moving_averages
@@ -36,19 +39,32 @@ def plot_hist(data, bins=50, title=None, xlabel=None, ylabel=None):
     return fig
 
 
-def plot_curves(data, legend, title, xlabel, ylabel, xlim=(None, None), ylim=(None, None), stop=None):
+def plot_boxplot(data, title='Predicted variance'):
+    fig, ax = plt.subplots()
+    ax.set_title(title)
+    ax.boxplot(data)
+    return fig
+
+
+def plot_curves(data, legend, title, xlabel, ylabel, xlim=(None, None), ylim=(None, None), stop=None, val=False):
     fig, ax = plt.subplots(figsize=(24, 18))
     add_legend = False
     for i in range(len(data)):
         if legend[i] is None:
             if stop is not None:
-                ax.plot(np.linspace(0, stop, num=len(data[i]), endpoint=False), data[i])
+                if i==1 and val:
+                    ax.plot(np.linspace(1, stop, num=len(data[i]), endpoint=True), data[i])
+                else:
+                    ax.plot(np.linspace(0, stop, num=len(data[i]), endpoint=False), data[i])
             else:
                 ax.plot(range(1, len(data[i])+1), data[i])
         else:
             add_legend = True
             if stop is not None:
-                ax.plot(np.linspace(0, stop, num=len(data[i]), endpoint=False), data[i], label=legend[i])
+                if i==1 and val:
+                    ax.plot(np.linspace(1, stop, num=len(data[i]), endpoint=True), data[i], label=legend[i])
+                else:
+                    ax.plot(np.linspace(0, stop, num=len(data[i]), endpoint=False), data[i], label=legend[i])
             else:
                 ax.plot(range(1, len(data[i])+1), data[i], label=legend[i])
     ax.set_title(title)
@@ -160,6 +176,7 @@ def plot_pred_vdp(preds, truth, varis, no_zero=False, nb_classes=5, var_range=No
 
     # Describe variances
     print(f'Statistics of predicted variances: {scipy.stats.describe(varis.flatten())}')
+    print(f'Median of predicted variances: {varis.flatten().median()}')
 
     # Create colormap for classes
     colors    = plt.cm.jet
@@ -228,7 +245,7 @@ def get_ylim(array_list):
     for i in range (1, len(array_list)):
         ymin = min(ymin, array_list[i].mean())
         ymax = max(ymax, array_list[i].mean())
-    rang = ymax - ymin
+    rang = 2*(ymax - ymin)
     ymax = ymax + rang
     ymin = ymin - rang
     if np.isnan(ymax):
@@ -258,7 +275,7 @@ def main():
         preds = torch.load(f'models/{param["name"]}/preds.pickle')
         truth = torch.load(f'models/{param["name"]}/truth.pickle')
 
-    window = 10
+    window = param['window']
     with open(f'models/{param["name"]}/loss.pickle', 'rb') as f:
         loss_full = pickle.load(f)
         loss_full = np.array(moving_average(loss_full, window))
@@ -274,6 +291,8 @@ def main():
     with open(f'models/{param["name"]}/kl.pickle', 'rb') as f:
         kl_full = pickle.load(f)
         kl_full = np.array(moving_average(kl_full, window))
+    # with open(f'models/{param["name"]}/cutoff.pickle', 'rb') as f:
+    #     b_full = pickle.load(f)
     with open(f'models/{param["name"]}/class.pickle', 'rb') as f:
         class_full = pickle.load(f)
         # class_full = CPU_Unpickler(f).load()
@@ -301,12 +320,18 @@ def main():
                 figs.append(plot_spot(preds, truth, varis))
             else:
                 figs.append(plot_pred_vdp(preds, truth, varis, param['no_zero'], nb_class, param['var_range']))
+            figs.append(plot_boxplot(varis.flatten()))
         var_correct = torch.load(f'models/{param["name"]}/var_corr.pickle')
         var_incorr  = torch.load(f'models/{param["name"]}/var_incorr.pickle')
-        figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
-                              xlabel='Variance', ylabel='Numbers'))
-        figs.append(plot_hist(var_incorr, bins=50, title='Incorrectly classified',
-                              xlabel='Variance', ylabel='Numbers'))
+        if param['plot_hist']:
+            figs.append(plot_hist(var_correct, bins=50, title='Correctly classified',
+                                  xlabel='Variance', ylabel='Numbers'))
+            figs.append(plot_hist(var_incorr, bins=50, title='Incorrectly classified',
+                                  xlabel='Variance', ylabel='Numbers'))
+        else:
+            figs.append(plot_boxplot(var_correct, 'Correctly classified'))
+            figs.append(plot_boxplot(var_incorr, 'Incorrectly classified'))
+
     else:
         if param['dataset'] == 'pirats':
             if param['predict_spot']:
@@ -317,13 +342,17 @@ def main():
     print(f'KL factor: {param["kl_factor"]}')
     figs.append(plot_curves([loss_full, loss_val], ['Training', 'Validation'],
                             'Full loss', 'Epoch', 'Full loss',
-                            ylim=get_ylim([loss_full, loss_val]), stop=param['epochs']))
+                            ylim=get_ylim([loss_full, loss_val]),
+                            stop=param['epochs'], val=True))
     figs.append(plot_curves([nll_full, nll_val], ['Training', 'Validation'],
-                            'NLL', 'Epoch', 'Loss', ylim= get_ylim([nll_full, nll_val]), stop=param['epochs']))
+                            'NLL', 'Epoch', 'Loss', ylim= get_ylim([nll_full, nll_val]),
+                            stop=param['epochs'], val=True))
     figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Epoch', 'Loss', stop=param['epochs']))
     figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
                             ['nll', 'factor*kl'], 'NLL and factor*KL', 'Epoch', 'Loss',
                             ylim=get_ylim([nll_full, param['kl_factor']*kl_full]), stop=param['epochs']))
+    # figs.append(plot_curves(b_full, ['b1', 'b2'],
+    #                         'Cutoff parameters during training', 'Epoch', 'Cutoff parameters', stop=param['epochs']))
     if param['no_zero']:
         class_legend = [f'Class {i+1}' for i in range(len(class_full))]
     else:

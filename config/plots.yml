@@ -1,6 +1,8 @@
-name      : vdp31
+name      : vdp37
 # Variance scale range
 var_range : null
+window    : 100
+plot_hist : True
 
 # model
 
@@ -9,8 +11,8 @@ vdp      : True
 # training
 
 # l2 regularization hyperparameter in ELBO
-kl_factor     : 1.e-6
-epochs        : 50
+kl_factor     : 1.e-10
+epochs        : 5
 
 # dataset
 

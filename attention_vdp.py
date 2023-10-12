@@ -187,9 +187,10 @@ class DecoderVDP(nn.Module):
         emb_dim       = param['emb']
         k             = emb_dim[-1]
         if param['predict_spot']:
-            d = 1
+            self.d = 1
         else:
-            d = param['nb_lon']*param['nb_lat']
+            self.d = param['nb_lon']*param['nb_lat']
+        self.ordinal  = param['ordinal']
         self.nb_class = param['nb_classes']
         self.n        = n
         self.q        = len(emb_dim)
@@ -204,7 +205,7 @@ class DecoderVDP(nn.Module):
         self.norm1    = nn.ModuleList()
         self.norm2    = nn.ModuleList()
         self.norm3    = nn.ModuleList()
-        self.emb.append(LinearVDP(d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
+        self.emb.append(LinearVDP(self.d, emb_dim[0], var_init=param['var_init'], tol=self.tol))
         for i in range(len(emb_dim)-1):
             self.emb.append(LinearVDP(emb_dim[i], emb_dim[i+1], var_init=param['var_init'], tol=self.tol))
         for i in range(n):
@@ -215,7 +216,10 @@ class DecoderVDP(nn.Module):
             self.multi2.append(DecoderHeadVDP(h, k, device, self.mode, param['var_init'], self.tol))
             self.norm3.append(LayerNormVDP(k, var_init=param['var_init'], tol=self.tol))
             self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
-        self.fc.append(LinearVDP(k, d, var_init=param['var_init'], tol=self.tol))
+        if self.ordinal:
+            self.fc.append(LinearVDP(k, self.d, var_init=param['var_init'], tol=self.tol))
+        else:
+            self.fc.append(LinearVDP(k, self.d*param['nb_classes'], var_init=param['var_init'], tol=self.tol))
         self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class-1))
         nn.init.xavier_uniform_(self.cutoff)
 
@@ -239,24 +243,29 @@ class DecoderVDP(nn.Module):
             x, var_x, j_relu = relu_vdp(*self.fc[i](x, var_x), return_jac=True, tol=self.tol)
             x, var_x = residual_vdp(x0, var_x0, x, var_x, mode=self.mode, tol=self.tol)
         x, var_x = self.fc[-1](x, var_x)
-        probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
-        var_prob = torch.zeros(*x.shape, self.nb_class).to(self.device)
-        b        = torch.zeros_like(self.cutoff).to(self.device)
-        b[0,  0] = self.cutoff[0, 0]
-        b[0, 1:] = self.cutoff[0, 1:]**2
-        b[:]     = b.cumsum(dim=1)
-        p0       = b[0, 0] - x
-        probs[..., 0], var_prob[..., 0] = sigmoid_vdp(p0, var_x)
-        p1       = b[0, -1] - x
-        probs[..., -1], var_prob[..., -1] = sigmoid_vdp(p1, var_x)
-        probs[..., -1] = 1 - probs[..., -1]
-        for i in range(1, self.nb_class-1):
-            pi               = b[0, i] - x
-            pi_1             = b[0, i-1] - x
-            xi, var_i        = sigmoid_vdp(pi, var_x)
-            xi_1, var_i_1    = sigmoid_vdp(pi_1, var_x)
-            probs[..., i]    = xi - xi_1
-            var_prob[..., i] = var_i + var_i_1
+        if self.ordinal:
+            probs    = torch.zeros(*x.shape, self.nb_class).to(self.device)
+            var_prob = torch.zeros(*x.shape, self.nb_class).to(self.device)
+            b        = torch.zeros_like(self.cutoff).to(self.device)
+            b[0,  0] = self.cutoff[0, 0]
+            b[0, 1:] = self.cutoff[0, 1:]**2
+            b[:]     = b.cumsum(dim=1)
+            p0       = b[0, 0] - x
+            probs[..., 0], var_prob[..., 0] = sigmoid_vdp(p0, var_x)
+            p1       = b[0, -1] - x
+            probs[..., -1], var_prob[..., -1] = sigmoid_vdp(p1, var_x)
+            probs[..., -1] = 1 - probs[..., -1]
+            for i in range(1, self.nb_class-1):
+                pi               = b[0, i] - x
+                pi_1             = b[0, i-1] - x
+                xi, var_i        = sigmoid_vdp(pi, var_x)
+                xi_1, var_i_1    = sigmoid_vdp(pi_1, var_x)
+                probs[..., i]    = xi - xi_1
+                var_prob[..., i] = var_i + var_i_1
+        else:
+            x        = x.reshape(x.shape[0], x.shape[1], self.d, -1)
+            var_x    = var_x.reshape(x.shape[0], x.shape[1], self.d, -1)
+            probs, var_prob = softmax_vdp(x, var_x, tol=self.tol)
         return probs, var_prob
 
 
@@ -288,7 +297,7 @@ class TransformerED_VDP(nn.Module):
             y, var_y = self.decoder(pred, k, var_k, v, var_v)
             prob[:,   t, :]   = y[:, t, ...]
             var_prob[:, t, :] = var_y[:, t, ...]
-            pred[:, t+1, :]   = y[:, t, ...].argmax(dim=2)
+            pred[:, t+1, :]   = y[:, t, ...].argmax(dim=-1)
             if self.no_zero:
                 pred[:, t+1, :] = pred[:, t+1, :] + 1
         return pred[:, 1:, :], prob, var_prob
