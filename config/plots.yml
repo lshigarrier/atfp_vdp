@@ -1,7 +1,7 @@
-name      : vdp37
+name      : vdp43_5
 # Variance scale range
 var_range : null
-window    : 100
+window    : 10
 plot_hist : True
 
 # model
@@ -17,6 +17,6 @@ epochs        : 5
 # dataset
 
 dataset      : pirats
-nb_classes   : 3
-no_zero      : True
+nb_classes   : 4
+no_zero      : False
 predict_spot : False

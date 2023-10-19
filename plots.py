@@ -1,7 +1,6 @@
 import numpy as np
 import scipy
 import pickle
-import io
 import torch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -240,26 +239,19 @@ def plot_pred_vdp(preds, truth, varis, no_zero=False, nb_classes=5, var_range=No
 
 
 def get_ylim(array_list):
-    ymin = array_list[0].mean()
-    ymax = array_list[0].mean()
+    ymin = array_list[0].min()
+    ymax = array_list[0].max()
     for i in range (1, len(array_list)):
-        ymin = min(ymin, array_list[i].mean())
-        ymax = max(ymax, array_list[i].mean())
-    rang = 2*(ymax - ymin)
-    ymax = ymax + rang
-    ymin = ymin - rang
+        ymin = min(ymin, array_list[i].min())
+        ymax = max(ymax, array_list[i].max())
+    rang = ymax - ymin
+    ymax = ymax + 0.1*rang
+    ymin = ymin - 0.1*rang
     if np.isnan(ymax):
         ymax = None
     if np.isnan(ymin):
         ymin = None
     return ymin, ymax
-
-
-class CPU_Unpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        if module == 'torch.storage' and name == '_load_from_bytes':
-            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
-        else: return super().find_class(module, name)
 
 
 def main():
@@ -291,13 +283,11 @@ def main():
     with open(f'models/{param["name"]}/kl.pickle', 'rb') as f:
         kl_full = pickle.load(f)
         kl_full = np.array(moving_average(kl_full, window))
-    # with open(f'models/{param["name"]}/cutoff.pickle', 'rb') as f:
-    #     b_full = pickle.load(f)
+    with open(f'models/{param["name"]}/grad.pickle', 'rb') as f:
+        grad_full = pickle.load(f)
     with open(f'models/{param["name"]}/class.pickle', 'rb') as f:
         class_full = pickle.load(f)
-        # class_full = CPU_Unpickler(f).load()
     for i in range(len(class_full)):
-        # class_full[i] = [_.item() for _ in class_full[i]]
         class_full[i] = np.array(moving_average(class_full[i], window))
 
     # Plots
@@ -347,12 +337,12 @@ def main():
     figs.append(plot_curves([nll_full, nll_val], ['Training', 'Validation'],
                             'NLL', 'Epoch', 'Loss', ylim= get_ylim([nll_full, nll_val]),
                             stop=param['epochs'], val=True))
-    figs.append(plot_curves([param['kl_factor']*kl_full], [None], 'factor*KL', 'Epoch', 'Loss', stop=param['epochs']))
+    figs.append(plot_curves([param['kl_factor']*kl_full], [None], f'{param["kl_factor"]}*KL', 'Epoch', 'Loss', stop=param['epochs']))
     figs.append(plot_curves([nll_full, param['kl_factor']*kl_full],
-                            ['nll', 'factor*kl'], 'NLL and factor*KL', 'Epoch', 'Loss',
+                            ['nll', 'factor*kl'], f'NLL and {param["kl_factor"]}*KL', 'Epoch', 'Loss',
                             ylim=get_ylim([nll_full, param['kl_factor']*kl_full]), stop=param['epochs']))
-    # figs.append(plot_curves(b_full, ['b1', 'b2'],
-    #                         'Cutoff parameters during training', 'Epoch', 'Cutoff parameters', stop=param['epochs']))
+    figs.append(plot_curves(grad_full, ['Gradient norm'],
+                            'Average gradient norm per batch during training', 'Epoch', 'Gradient norm', stop=param['epochs']))
     if param['no_zero']:
         class_legend = [f'Class {i+1}' for i in range(len(class_full))]
     else:

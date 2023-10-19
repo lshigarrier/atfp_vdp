@@ -218,10 +218,10 @@ class DecoderVDP(nn.Module):
             self.fc.append(LinearVDP(k, k, var_init=param['var_init'], tol=self.tol))
         if self.ordinal:
             self.fc.append(LinearVDP(k, self.d, var_init=param['var_init'], tol=self.tol))
+            self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class - 1))
+            nn.init.xavier_uniform_(self.cutoff)
         else:
             self.fc.append(LinearVDP(k, self.d*param['nb_classes'], var_init=param['var_init'], tol=self.tol))
-        self.cutoff = nn.parameter.Parameter(data=torch.zeros(1, self.nb_class-1))
-        nn.init.xavier_uniform_(self.cutoff)
 
     def forward(self, x, k, var_k, v, var_v):
         x = x.float()

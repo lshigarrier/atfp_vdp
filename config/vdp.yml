@@ -65,7 +65,7 @@ nb_classes  : 3
 
 # pirats
 
-path        : ./data/20200718_C_CONV.feather  # ./data/20200718_C_CONV.feather # ./data/20200718_C_NEW.feather
+path        : ./data/20200718_C_CONV.feather  # ./data/20200718_C_CONV.feather # ./data/20200718_C_NEW.feather # ./data/20180901.feather
 # proportion of test examples among all available examples
 split_ratio : 0.1
 # input sequence length

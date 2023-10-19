@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset
@@ -290,11 +291,44 @@ def dataset_iterate(loader):
         print(y.min().item())
 
 
-def explore_data():
-    from utils import load_yaml
-    param = load_yaml()
+def get_distance(point1, point2):
+    R = 6370
+    deg2rad = np.pi/180
+    lat1 = deg2rad*point1[0]
+    lon1 = deg2rad*point1[1]
+    lat2 = deg2rad*point2[0]
+    lon2 = deg2rad*point2[1]
 
-    data = pd.read_feather(param['path'])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+    c = 2 * np.atan2(np.sqrt(a), np.sqrt(1-a))
+    distance = R * c
+    return distance
+
+
+def compute_complexity(input_path='./data/20180901.feather', output_path='./data/20180901_C.feather'):
+    data = pd.read_feather(input_path)
+
+    # Removing NaNs
+    # Columns names: 'idac', 'time', 'lon', 'lat', 'alt', 'speed', 'head', 'vz'
+    print(f'Nb of rows: {len(data.index)}')
+    data_nan = data[data.isna().any(axis=1)]
+    print(f'Nb of rows with NaNs: {len(data_nan.index)}')
+    idac_nan = data_nan['idac'].uniques().values.tolist()
+    data = data[~data['idac'].isin(idac_nan)]
+    print(f'Nb of rows after removing NaNs: {len(data.index)}')
+    nb_trajs = data['idac'].nunique()
+    print(f'Nb of trajectories: {nb_trajs}')
+    # data_not_num = data_clean[~data_clean.applymap(np.isreal).all(axis=1)]
+    # print(f'Nb of non numerical rows: {len(data_not_num.index)}')
+
+    # Computing convergence complexity metric
+    time_list = data['time'].unique().values.tolist()
+    data['cong'] = 0
+    for index, row in data.iterrows():
+        pass
 
 
 def main():
@@ -329,5 +363,5 @@ def main():
 
 if __name__ == '__main__':
     # tsagi2frame()
-    # explore_data()
-    main()
+    compute_complexity()
+    # main()
